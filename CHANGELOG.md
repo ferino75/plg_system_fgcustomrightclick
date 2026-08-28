@@ -1,5 +1,63 @@
 # Changelog - plg_system_fgcustomrightclick
 
+## 1.6.6 (2026-08-28)
+
+### Popup HTML sanitizer fixes (server-side hardening + two consistency bugs)
+
+- **Added server-side sanitization of the popup message, before it ever
+  reaches `addScriptOptions()`.** Previously the field used `filter="raw"`
+  in the manifest and the ONLY sanitization was client-side JS
+  (`sanitizeHtml()`), so the raw admin-authored HTML was always present
+  in the page's script-options payload regardless. A new
+  `sanitizePopupMessage()` method runs `Joomla\Filter\InputFilter` with
+  the same tag/attribute allowlist as the JS side, as a second,
+  independent layer - defense-in-depth against a compromised admin
+  account, matching the reasoning already applied elsewhere in this
+  plugin (e.g. the link-scheme whitelist). The manifest field keeps
+  `filter="raw"` rather than switching to `filter="safehtml"`: Joomla's
+  built-in "safehtml" filter uses its own broader, fixed tag list that we
+  don't control, which would drift from the exact allowlist used here and
+  in the JS sanitizer. Calling `InputFilter` ourselves keeps both layers
+  using the identical set.
+- **Fixed an inconsistency: relative/anchor/query `<a href>` values in the
+  popup message were being stripped**, while the exact same kind of value
+  in a custom-menu link item was correctly allowed. The popup sanitizer's
+  own `SANITIZE_SAFE_URL` regex required an explicit `http(s)/mailto/tel`
+  prefix on every href; a value like `/kontakt` or `#sekcia` has no
+  scheme at all and so failed that check and lost its href. Fixed by
+  reusing the exact same `isSafeLinkValue()` function already used for
+  custom-menu links in the JS sanitizer (and its PHP counterpart in the
+  new server-side pass above), which correctly treats schemeless values
+  as safe.
+- **Fixed content loss on disallowed tags**: `<h2>Ahoj</h2>` previously
+  vanished entirely (tag *and* text), since the sanitizer called
+  `node.remove()` on anything not in the tag allowlist. It now unwraps
+  disallowed-but-harmless tags instead - keeping their text/child content
+  and dropping only the wrapping tag - while a small set of genuinely
+  dangerous tags (`script`, `style`, `iframe`, `object`, `embed`,
+  `noscript`, `template`, `svg`) are still removed entirely, content
+  included, exactly as before. This required rewriting the sanitizer's
+  tree walk from a snapshot-based loop to one that resumes scanning from
+  any newly-promoted children after an unwrap, so nested cases (a
+  disallowed tag inside another disallowed tag, itself containing a
+  dangerous tag) are still fully sanitised in one pass rather than being
+  silently skipped.
+- On the specific claim that `javascript:` hrefs could bypass the popup
+  sanitizer via the same control-character trick used against the
+  menu-link whitelist: on inspection this particular check was an
+  *allow-list* match (`must start with http(s)/mailto/tel`), not a
+  deny-list one, so the described bypass direction did not apply here.
+  The real, fixed issue was the duplicated/divergent logic itself
+  (previous two bullets) - unifying both paths onto `isSafeLinkValue()`
+  closes that gap regardless and keeps any future scheme-check hardening
+  automatically shared between both.
+- Added `test_fg_crc_popup_sanitize_php.php` (9 PHP-side assertions,
+  reflection-based with a pass-through `InputFilter` stub targeting only
+  the new href re-validation logic) and
+  `test_fg_crc_sanitizer_consistency.js` (17 jsdom assertions covering
+  relative-href preservation, unwrap-keeps-text, dangerous tags still
+  fully removed, and a deeply-nested unwrap-then-remove case).
+
 ## 1.6.5 (2026-08-28)
 
 ### Bug fix - mode 3 ("Custom menu") with no usable items

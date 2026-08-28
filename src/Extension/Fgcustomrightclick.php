@@ -13,6 +13,7 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\Event\Event;
 use Joomla\Event\SubscriberInterface;
+use Joomla\Filter\InputFilter;
 
 \defined('_JEXEC') or die;
 
@@ -108,7 +109,7 @@ final class Fgcustomrightclick extends CMSPlugin implements SubscriberInterface
             $options['popup'] = [
                 'enabled' => (bool) ((int) $this->params->get('popup_enabled', 1)),
                 'title'   => (string) $this->params->get('popup_title', ''),
-                'message' => (string) $this->params->get('popup_message', ''),
+                'message' => $this->sanitizePopupMessage((string) $this->params->get('popup_message', '')),
                 'timeout' => (int) $this->params->get('popup_timeout', 0),
             ];
             $options['closeLabel'] = Text::_('PLG_SYSTEM_FGCUSTOMRIGHTCLICK_POPUP_CLOSE_LABEL');
@@ -188,6 +189,76 @@ final class Fgcustomrightclick extends CMSPlugin implements SubscriberInterface
         }
 
         return true;
+    }
+
+    /**
+     * Server-side counterpart to the JS-side sanitizeHtml() allowlist. Runs
+     * on the raw admin-authored popup message before it ever reaches
+     * addScriptOptions(), so the persisted/transmitted value is already
+     * reasonably clean even before the frontend script (which still runs
+     * its own, second pass) touches it - defense-in-depth against a
+     * compromised admin account, matching the same reasoning already
+     * applied to the custom-menu link-scheme whitelist.
+     *
+     * Deliberately calls Joomla\Filter\InputFilter directly with our own
+     * fixed tag/attribute list, rather than using filter="safehtml" on the
+     * form field: that ties the field to Joomla's own built-in "safehtml"
+     * tag list, which is broader than - and independent of - the exact
+     * allowlist used here and in fgcustomrightclick.js. Calling InputFilter
+     * ourselves keeps both layers using the identical set.
+     */
+    private function sanitizePopupMessage(string $html): string
+    {
+        if (trim($html) === '') {
+            return '';
+        }
+
+        $filter = InputFilter::getInstance(
+            ['a', 'strong', 'em', 'b', 'i', 'br', 'p', 'span', 'ul', 'ol', 'li'],
+            ['href', 'title', 'target'],
+            1,
+            1
+        );
+
+        $clean = $filter->clean($html, 'html');
+
+        // InputFilter's own xssAuto pass already strips common dangerous
+        // URL schemes from attribute values, but re-check every <a href>
+        // against the same allowlist used for custom-menu links
+        // (isSafeLinkValue) so both layers agree on exactly what "safe"
+        // means - including consistently allowing relative/anchor hrefs,
+        // which a plain scheme-allowlist regex would otherwise reject.
+        if (stripos($clean, '<a') !== false && \class_exists(\DOMDocument::class)) {
+            $dom = new \DOMDocument();
+            $prevErrorSetting = libxml_use_internal_errors(true);
+            $dom->loadHTML(
+                '<?xml encoding="utf-8"?><div>' . $clean . '</div>',
+                \LIBXML_NOERROR | \LIBXML_NOWARNING
+            );
+            libxml_clear_errors();
+            libxml_use_internal_errors($prevErrorSetting);
+
+            foreach ($dom->getElementsByTagName('a') as $anchor) {
+                $href = $anchor->getAttribute('href');
+
+                if ($href !== '' && !$this->isSafeLinkValue($href)) {
+                    $anchor->removeAttribute('href');
+                }
+            }
+
+            $wrapper = $dom->getElementsByTagName('div')->item(0);
+            $rebuilt = '';
+
+            if ($wrapper !== null) {
+                foreach ($wrapper->childNodes as $child) {
+                    $rebuilt .= $dom->saveHTML($child);
+                }
+
+                $clean = $rebuilt;
+            }
+        }
+
+        return $clean;
     }
 
     /**

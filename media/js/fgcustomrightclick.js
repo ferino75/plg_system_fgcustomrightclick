@@ -225,25 +225,61 @@
      * (none reaches this field). Only a small set of inline/structural
      * tags survive; everything else (script, iframe, object, embed,
      * style, event-handler attributes, javascript:/data: URLs, ...) is
-     * stripped, tag and all.
+     * stripped. A handful of genuinely dangerous tags are removed along
+     * with their content (see SANITIZE_STRIP_ENTIRELY_TAGS); any other
+     * disallowed tag is unwrapped instead - its text/child content is
+     * kept, only the wrapping tag itself is dropped (e.g. <h2>Hi</h2>
+     * becomes "Hi", not nothing).
      */
     const SANITIZE_ALLOWED_TAGS = new Set(['A', 'STRONG', 'EM', 'B', 'I', 'BR', 'P', 'SPAN', 'UL', 'OL', 'LI']);
     const SANITIZE_ALLOWED_ATTRS = { A: ['href', 'title', 'target'] };
-    const SANITIZE_SAFE_URL = /^(https?:|mailto:|tel:)/i;
+    const SANITIZE_STRIP_ENTIRELY_TAGS = new Set(['SCRIPT', 'STYLE', 'IFRAME', 'OBJECT', 'EMBED', 'NOSCRIPT', 'TEMPLATE', 'SVG']);
 
     const sanitizeHtml = (html) => {
         const template = document.createElement('template');
         template.innerHTML = String(html);
 
         const clean = (root) => {
-            Array.from(root.childNodes).forEach((node) => {
+            let node = root.firstChild;
+            while (node) {
+                const next = node.nextSibling; // captured before node might move/vanish
+
                 if (node.nodeType === Node.TEXT_NODE) {
-                    return;
+                    node = next;
+                    continue;
                 }
-                if (node.nodeType !== Node.ELEMENT_NODE || !SANITIZE_ALLOWED_TAGS.has(node.tagName)) {
+
+                const isAllowed = node.nodeType === Node.ELEMENT_NODE && SANITIZE_ALLOWED_TAGS.has(node.tagName);
+
+                if (!isAllowed) {
+                    const stripEntirely = node.nodeType !== Node.ELEMENT_NODE
+                        || SANITIZE_STRIP_ENTIRELY_TAGS.has(node.tagName);
+
+                    let firstPromoted = null;
+                    if (!stripEntirely) {
+                        // Unwrap: promote this element's children to take
+                        // its place, keeping their (still-to-be-sanitised)
+                        // content instead of discarding it with the tag.
+                        let child = node.firstChild;
+                        while (child) {
+                            const childNext = child.nextSibling;
+                            root.insertBefore(child, node);
+                            if (!firstPromoted) {
+                                firstPromoted = child;
+                            }
+                            child = childNext;
+                        }
+                    }
+
                     node.remove();
-                    return;
+                    // Resume scanning from whatever was promoted (so it
+                    // still gets sanitised/recursed into), or from `next`
+                    // if nothing was promoted or the whole subtree was
+                    // dropped.
+                    node = firstPromoted || next;
+                    continue;
                 }
+
                 const allowedAttrs = SANITIZE_ALLOWED_ATTRS[node.tagName] || [];
                 Array.from(node.attributes).forEach((attr) => {
                     if (!allowedAttrs.includes(attr.name.toLowerCase())) {
@@ -251,8 +287,11 @@
                     }
                 });
                 if (node.tagName === 'A') {
-                    const href = (node.getAttribute('href') || '').trim();
-                    if (!SANITIZE_SAFE_URL.test(href)) {
+                    // Same allowlist used for custom-menu links, so both
+                    // places agree on what "safe" means: schemeless values
+                    // (relative paths, #anchors, ?query) are fine, an
+                    // explicit scheme must be http(s)/mailto/tel.
+                    if (!isSafeLinkValue(node.getAttribute('href') || '')) {
                         node.removeAttribute('href');
                     }
                     if (node.getAttribute('target') && node.getAttribute('target') !== '_blank') {
@@ -261,8 +300,10 @@
                     // Always force safe rel when opening in a new tab
                     node.setAttribute('rel', 'noopener noreferrer');
                 }
+
                 clean(node);
-            });
+                node = next;
+            }
         };
 
         clean(template.content);

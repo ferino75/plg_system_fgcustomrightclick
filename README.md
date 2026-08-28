@@ -2,7 +2,7 @@
 
 [![Joomla](https://img.shields.io/badge/Joomla-6%2C%205%2C%204-1a6877?logo=joomla)](https://www.joomla.org/)
 [![License: GPL v2](https://img.shields.io/badge/License-GPLv2-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.6.5-ff6b4a)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.6.6-ff6b4a)](CHANGELOG.md)
 
 A native Joomla system plugin that disables printing, text selection/copy,
 image dragging, developer-tools keyboard shortcuts, and the browser's
