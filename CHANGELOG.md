@@ -1,5 +1,37 @@
 # Changelog - plg_system_fgcustomrightclick
 
+## 1.8.2 (2026-08-28)
+
+### Critical bug fix - right-click on the plugin's own menu leaked the native menu
+
+- **Reported from real-world testing**: with "Custom menu" mode active,
+  right-clicking a second time - this time ON the already-open custom
+  menu itself (one of its items), or on the popup's close button in mode
+  1 - showed the native browser context menu instead of being blocked.
+  Exactly the behaviour the plugin exists to prevent, happening on the
+  plugin's own UI.
+- **Root cause**: v1.5.0's "Skip on interactive elements" feature
+  (`protectInteractive`, on by default) exempts `<button>` elements from
+  right-click blocking so a site's own buttons keep working normally.
+  The custom menu's own items - and the popup's close button - are also
+  implemented as `<button>` elements. Since the exemption check has no
+  way to tell "the site's own button" apart from "the plugin's own
+  rendered UI, which happens to use a button internally", right-clicking
+  the plugin's own menu/close button was incorrectly treated as
+  interactive site content and let through.
+- **Fix**: added a guard, checked before the interactive-elements
+  exemption, that recognises the plugin's own UI (`.crc-overlay` -
+  covers the popup and its backdrop, `.crc-menu`, `.crc-toast`) and
+  always blocks the native menu there regardless of what element was
+  clicked, never deferring to `isInteractiveExempt()` for it.
+- Added `test_fg_crc_own_ui_rightclick.js` (7 jsdom assertions)
+  reproducing the exact report: a second right-click on a custom-menu
+  item, on the popup's close button, and on the popup backdrop are all
+  now correctly blocked, while a sanity check confirms a real site
+  button (outside the plugin's own UI) remains correctly exempted as
+  before - this was verified to actually catch the regression by
+  temporarily reverting the fix and confirming the test suite fails.
+
 ## 1.8.1 (2026-08-28)
 
 ### Packaging/repo fixes

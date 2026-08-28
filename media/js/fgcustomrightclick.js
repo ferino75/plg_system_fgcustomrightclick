@@ -616,9 +616,25 @@
      *  Event wiring
      * ------------------------------------------------------------------ */
 
+    // Elements belonging to the plugin's OWN rendered UI (the custom
+    // menu, the popup, its overlay backdrop, the toast) - never the
+    // "isInteractiveExempt" for these just because a menu item or the
+    // popup's close button happens to be a <button>. That exemption
+    // exists for the SITE's own interactive content, not for our control
+    // surface layered on top of it; without this guard, right-clicking a
+    // custom-menu item (or the popup close button) would incorrectly let
+    // the native browser menu show through instead of being blocked.
+    const OWN_UI_SELECTOR = `.${PREFIX}-overlay, .${PREFIX}-menu, .${PREFIX}-toast`;
+    const isOwnUiTarget = (target) => !!(target?.closest && target.closest(OWN_UI_SELECTOR));
+
     // Right click handling
     if (cfg.mode > 0) {
         document.addEventListener('contextmenu', (e) => {
+            if (isOwnUiTarget(e.target)) {
+                e.preventDefault();
+                return;
+            }
+
             if (cfg.mode === 2) {
                 if (isProtectedMediaTarget(e.target)) {
                     e.preventDefault();
