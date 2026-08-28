@@ -1,0 +1,51 @@
+# FG Custom Right Click
+
+[![Joomla](https://img.shields.io/badge/Joomla-6%2C%205%2C%204-1a6877?logo=joomla)](https://www.joomla.org/)
+[![License: GPL v2](https://img.shields.io/badge/License-GPLv2-blue.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-1.3.0-ff6b4a)](CHANGELOG.md)
+
+A native Joomla system plugin that disables printing, text selection/copy,
+image dragging, developer-tools keyboard shortcuts, and the browser's
+right-click menu on the frontend — with an optional popup message or a
+fully custom, ARIA-accessible context menu of your own.
+
+Rebuilt from the ground up as a Joomla 6-native plugin (PSR-4,
+`SubscriberInterface`, DI container via `services/provider.php`,
+`WebAssetManager`), inspired by the discontinued Glimlag "Custom Right
+Click for Joomla 3.X" extension.
+
+## Features
+
+- Apply rules to specific user groups only (or everyone)
+- Disable printing (Ctrl/Cmd+P + print-output content hiding)
+- Disable text selection & copying (form fields stay usable)
+- Disable image dragging
+- Block developer-tools keyboard shortcuts (F12, Ctrl+Shift+I/J/C,
+  Cmd+Opt+I/J/C, Ctrl/Cmd+U)
+- Four right-click modes: default / disabled with popup / images-only /
+  fully custom menu
+- Custom context menu builder: link, JavaScript, or separator items, with
+  icons, a `{url}` placeholder, and open-in-new-tab
+- Full keyboard accessibility: focus trap in the popup, roving-tabindex
+  arrow-key navigation in the custom menu, focus returned on close
+
+## Installation
+
+1. Download the latest release ZIP from the
+   [Releases](https://github.com/ferino75/plg_system_fgcustomrightclick/releases)
+   page.
+2. In Joomla, go to **System → Install → Extensions** and upload the ZIP.
+3. Enable the plugin under **System → Manage → Plugins** and search for
+   "FG - Custom Right Click".
+
+## Requirements
+
+Joomla 4, 5, or 6.
+
+## License
+
+GPL-2.0-or-later. See [LICENSE](LICENSE).
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md).

@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="plugin" group="system" method="upgrade">
+	<name>plg_system_fgcustomrightclick</name>
+	<author>Fero</author>
+	<creationDate>2026-08-27</creationDate>
+	<copyright>(C) 2026 Fero. All rights reserved.</copyright>
+	<license>GNU General Public License version 2 or later</license>
+	<version>1.3.0</version>
+	<description>PLG_SYSTEM_FGCUSTOMRIGHTCLICK_XML_DESCRIPTION</description>
+	<namespace path="src">FG\Plugin\System\Fgcustomrightclick</namespace>
+
+	<files>
+		<folder plugin="fgcustomrightclick">services</folder>
+		<folder>src</folder>
+		<folder>language</folder>
+	</files>
+
+	<media destination="plg_system_fgcustomrightclick" folder="media">
+		<folder>js</folder>
+		<folder>css</folder>
+	</media>
+
+	<languages folder="language">
+		<language tag="en-GB">en-GB/plg_system_fgcustomrightclick.ini</language>
+		<language tag="en-GB">en-GB/plg_system_fgcustomrightclick.sys.ini</language>
+		<language tag="sk-SK">sk-SK/plg_system_fgcustomrightclick.ini</language>
+		<language tag="sk-SK">sk-SK/plg_system_fgcustomrightclick.sys.ini</language>
+	</languages>
+
+	<updateservers>
+		<server type="extension" priority="1" name="FG Custom Right Click Update Site">https://raw.githubusercontent.com/ferino75/plg_system_fgcustomrightclick/master/updates.xml</server>
+	</updateservers>
+
+	<config>
+		<fields name="params">
+			<fieldset name="basic" label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELDSET_BASIC">
+
+				<field
+					name="usergroups"
+					type="usergrouplist"
+					label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_USERGROUPS_LABEL"
+					description="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_USERGROUPS_DESC"
+					multiple="true"
+				/>
+
+				<field
+					name="disable_print"
+					type="radio"
+					layout="joomla.form.field.radio.switcher"
+					label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_DISABLE_PRINT_LABEL"
+					description="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_DISABLE_PRINT_DESC"
+					default="0"
+					filter="integer"
+				>
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>
+
+				<field
+					name="disable_select"
+					type="radio"
+					layout="joomla.form.field.radio.switcher"
+					label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_DISABLE_SELECT_LABEL"
+					description="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_DISABLE_SELECT_DESC"
+					default="0"
+					filter="integer"
+				>
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>
+
+				<field
+					name="disable_imagedrag"
+					type="radio"
+					layout="joomla.form.field.radio.switcher"
+					label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_DISABLE_IMAGEDRAG_LABEL"
+					description="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_DISABLE_IMAGEDRAG_DESC"
+					default="0"
+					filter="integer"
+				>
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>
+
+				<field
+					name="block_devtools"
+					type="radio"
+					layout="joomla.form.field.radio.switcher"
+					label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_BLOCK_DEVTOOLS_LABEL"
+					description="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_BLOCK_DEVTOOLS_DESC"
+					default="0"
+					filter="integer"
+				>
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>
+
+				<field
+					name="rightclick_mode"
+					type="list"
+					label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_MODE_LABEL"
+					description="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_MODE_DESC"
+					default="0"
+					filter="integer"
+				>
+					<option value="0">PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_MODE_NO</option>
+					<option value="1">PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_MODE_YES</option>
+					<option value="2">PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_MODE_IMAGES</option>
+					<option value="3">PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_MODE_MENU</option>
+				</field>
+
+			</fieldset>
+
+			<fieldset name="popup" label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELDSET_POPUP">
+
+				<field
+					name="popup_enabled"
+					type="radio"
+					layout="joomla.form.field.radio.switcher"
+					label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_POPUP_ENABLED_LABEL"
+					description="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_POPUP_ENABLED_DESC"
+					default="1"
+					filter="integer"
+				>
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>
+
+				<field
+					name="popup_title"
+					type="text"
+					label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_POPUP_TITLE_LABEL"
+					default=""
+					showon="popup_enabled:1"
+				/>
+
+				<field
+					name="popup_message"
+					type="textarea"
+					rows="6"
+					filter="raw"
+					label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_POPUP_MESSAGE_LABEL"
+					description="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_POPUP_MESSAGE_DESC"
+					default=""
+					showon="popup_enabled:1"
+				/>
+
+				<field
+					name="popup_timeout"
+					type="number"
+					min="0"
+					max="60"
+					step="1"
+					default="0"
+					label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_POPUP_TIMEOUT_LABEL"
+					description="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_POPUP_TIMEOUT_DESC"
+					filter="integer"
+					showon="popup_enabled:1"
+				/>
+
+			</fieldset>
+
+			<fieldset name="custommenu" label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELDSET_MENU">
+
+				<field
+					name="menuitems"
+					type="subform"
+					label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_MENUITEMS_LABEL"
+					description="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_MENUITEMS_DESC"
+					multiple="true"
+					layout="joomla.form.field.subform.repeatable"
+					buttons="add,remove,move"
+				>
+					<form>
+						<field
+							name="type"
+							type="list"
+							label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_ITEM_TYPE_LABEL"
+							default="link"
+						>
+							<option value="link">PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_ITEM_TYPE_LINK</option>
+							<option value="js">PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_ITEM_TYPE_JS</option>
+							<option value="separator">PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_ITEM_TYPE_SEPARATOR</option>
+						</field>
+						<field
+							name="icon"
+							type="text"
+							label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_ITEM_ICON_LABEL"
+							description="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_ITEM_ICON_DESC"
+						/>
+						<field
+							name="label"
+							type="text"
+							label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_ITEM_LABEL_LABEL"
+						/>
+						<field
+							name="value"
+							type="textarea"
+							rows="2"
+							filter="raw"
+							label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_ITEM_VALUE_LABEL"
+							description="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_ITEM_VALUE_DESC"
+						/>
+						<field
+							name="newtab"
+							type="radio"
+							layout="joomla.form.field.radio.switcher"
+							label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_ITEM_NEWTAB_LABEL"
+							default="0"
+							filter="integer"
+						>
+							<option value="0">JNO</option>
+							<option value="1">JYES</option>
+						</field>
+					</form>
+				</field>
+
+			</fieldset>
+		</fields>
+	</config>
+</extension>

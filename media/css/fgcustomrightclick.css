@@ -1,0 +1,185 @@
+/**
+ * plg_system_fgcustomrightclick
+ * (C) 2026 Fero - GPL v2+
+ */
+
+/* ---- text selection off ---- */
+.crc-noselect body,
+.crc-noselect body * {
+    -webkit-user-select: none;
+    user-select: none;
+}
+.crc-noselect input,
+.crc-noselect textarea,
+.crc-noselect select,
+.crc-noselect [contenteditable="true"],
+.crc-noselect [contenteditable="true"] * {
+    -webkit-user-select: text;
+    user-select: text;
+}
+
+/* ---- popup (mode 1) ---- */
+.crc-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.55);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.15s ease;
+}
+
+.crc-overlay.crc-visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.crc-popup {
+    position: relative;
+    max-width: min(480px, calc(100vw - 2rem));
+    max-height: calc(100vh - 2rem);
+    overflow: auto;
+    background: #fff;
+    color: #222;
+    border-radius: 10px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+    padding: 1.25rem 1.5rem;
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    transform: translateY(8px);
+    transition: transform 0.15s ease;
+}
+
+.crc-overlay.crc-visible .crc-popup {
+    transform: translateY(0);
+}
+
+.crc-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0 1.5rem 0.5rem 0;
+}
+
+.crc-body {
+    margin-right: 1rem;
+}
+
+.crc-close {
+    position: absolute;
+    top: 0.4rem;
+    right: 0.5rem;
+    border: 0;
+    background: none;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    color: #888;
+    padding: 0.25rem;
+}
+
+.crc-close:hover {
+    color: #000;
+}
+
+.crc-close:focus-visible {
+    outline: 2px solid #4a90e2;
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* ---- custom context menu (mode 3) ---- */
+.crc-menu {
+    position: fixed;
+    z-index: 2147483001;
+    min-width: 200px;
+    max-width: 320px;
+    background: #fff;
+    color: #222;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 8px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22);
+    padding: 0.3rem;
+    font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.97);
+    transform-origin: top left;
+    transition: opacity 0.1s ease, transform 0.1s ease;
+}
+
+.crc-menu.crc-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+}
+
+.crc-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    width: 100%;
+    border: 0;
+    background: none;
+    text-align: left;
+    padding: 0.45rem 0.7rem;
+    border-radius: 5px;
+    cursor: pointer;
+    color: inherit;
+    font: inherit;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.crc-menu-item:hover,
+.crc-menu-item:focus-visible {
+    background: #f0f2f5;
+    outline: none;
+}
+
+.crc-menu-item:focus-visible {
+    box-shadow: inset 0 0 0 2px #4a90e2;
+}
+
+.crc-menu-icon {
+    flex: 0 0 auto;
+    width: 1.25em;
+    text-align: center;
+}
+
+.crc-menu-label {
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.crc-menu-sep {
+    height: 1px;
+    margin: 0.3rem 0.5rem;
+    background: rgba(0, 0, 0, 0.1);
+}
+
+/* dark mode friendliness */
+@media (prefers-color-scheme: dark) {
+    .crc-popup,
+    .crc-menu {
+        background: #1f2227;
+        color: #e6e6e6;
+        border-color: rgba(255, 255, 255, 0.12);
+    }
+    .crc-menu-item:hover,
+    .crc-menu-item:focus-visible {
+        background: #2c3037;
+    }
+    .crc-menu-sep {
+        background: rgba(255, 255, 255, 0.12);
+    }
+    .crc-close {
+        color: #aaa;
+    }
+    .crc-close:hover {
+        color: #fff;
+    }
+}
