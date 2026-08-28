@@ -4,7 +4,7 @@
 
 [![Joomla](https://img.shields.io/badge/Joomla-6%2C%205%2C%204-1a6877?logo=joomla)](https://www.joomla.org/)
 [![License: GPL v2](https://img.shields.io/badge/License-GPLv2-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.9.0-ff6b4a)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.9.1-ff6b4a)](CHANGELOG.md)
 
 A native Joomla system plugin that disables printing, text selection/copy,
 image dragging, developer-tools keyboard shortcuts, and the browser's
@@ -40,7 +40,8 @@ Click for Joomla 3.X" extension.
   copy URL, print, scroll to top, share), with icons, a `{url}` placeholder
   for links, and open-in-new-tab — no arbitrary code execution is possible
   anywhere in the plugin. Copy/share actions work on plain HTTP too (not
-  just HTTPS) and show a brief confirmation toast either way
+  just HTTPS), with a three-tier fallback (Clipboard API → execCommand →
+  a manual, pre-selected "press Ctrl+C" box) so they never silently fail
 - Full keyboard accessibility: focus trap in the popup, roving-tabindex
   arrow-key navigation in the custom menu, focus returned on close
 - Touch-device long-press (500ms) opens the popup/custom menu the same

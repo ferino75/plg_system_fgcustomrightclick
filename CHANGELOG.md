@@ -1,5 +1,44 @@
 # Changelog - plg_system_fgcustomrightclick
 
+## 1.9.1 (2026-08-28)
+
+### Third clipboard fallback tier - future-proofed against execCommand going away
+
+- **Added a third and final fallback tier for "Copy URL"/"Share"**, on
+  top of the existing Clipboard API -> `execCommand('copy')` chain:
+  when neither is available (a future browser having dropped
+  `execCommand` entirely - it is formally deprecated today - or a
+  Permissions-Policy blocking scripted clipboard access), the link is
+  now shown in a small, pre-selected read-only field so the visitor can
+  copy it with their own Ctrl+C/Cmd+C. Native keyboard copy doesn't
+  depend on any scripted clipboard API at all, so this tier can't be
+  broken the same way the other two theoretically could be in the
+  future.
+  - `execCommand` availability is now feature-detected
+    (`typeof document.execCommand === 'function'`) rather than only
+    try/catch-ed, so a browser that has removed it entirely is treated
+    the same as one that never had it, instead of relying on a thrown
+    error.
+  - The fallback box stays open (unlike the transient toast) until
+    dismissed - via its close button, clicking outside, or Escape -
+    since the visitor needs a moment to actually press the key. Reuses
+    the same focus-capture/restore helpers as the popup and menu, so
+    focus returns to whatever had it beforehand once the box closes.
+  - Today's common case is unaffected: on any browser where the
+    Clipboard API or `execCommand` succeeds (effectively all current
+    browsers), the one-click copy-with-toast experience from v1.7.2/
+    v1.9.0 is unchanged - the manual box is a fallback of last resort,
+    not a replacement for the one-click flow.
+- Added `test_fg_crc_manual_copy_fallback.js` (11 jsdom assertions):
+  the input is focused and its full text pre-selected on open, the close
+  button/outside-click/Escape all dismiss it (clicking inside it does
+  not), focus returns correctly afterwards, and the localized message
+  and URL both render correctly. Updated `test_fg_crc_copy_feedback.js`'s
+  no-Clipboard-API case to match the new tier-3 behaviour (jsdom has
+  neither the Clipboard API nor `execCommand`, so it now correctly
+  exercises the manual fallback box instead of the old "copy failed"
+  toast).
+
 ## 1.9.0 (2026-08-28)
 
 ### Touch/mobile support - long-press now reliably opens the popup/custom menu

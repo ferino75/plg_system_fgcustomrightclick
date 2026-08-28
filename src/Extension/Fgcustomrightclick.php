@@ -125,6 +125,7 @@ final class Fgcustomrightclick extends CMSPlugin implements SubscriberInterface
             $options['menuLabel'] = Text::_('PLG_SYSTEM_FGCUSTOMRIGHTCLICK_MENU_ARIA_LABEL');
             $options['copiedMessage'] = Text::_('PLG_SYSTEM_FGCUSTOMRIGHTCLICK_COPIED_MESSAGE');
             $options['copyFailedMessage'] = Text::_('PLG_SYSTEM_FGCUSTOMRIGHTCLICK_COPY_FAILED_MESSAGE');
+            $options['manualCopyMessage'] = Text::_('PLG_SYSTEM_FGCUSTOMRIGHTCLICK_MANUAL_COPY_MESSAGE');
         }
 
         $wa = $doc->getWebAssetManager();

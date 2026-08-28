@@ -313,3 +313,68 @@
     visibility: visible;
     transform: translateX(-50%) translateY(0);
 }
+
+/* ---- manual copy fallback ----
+   Third-tier fallback for "Copy URL"/"Share" when neither the modern
+   Clipboard API nor execCommand('copy') is available: shows the link in
+   a pre-selected read-only field so the visitor can copy it with their
+   own Ctrl+C/Cmd+C, which needs no scripted clipboard API at all. Stays
+   open (unlike the transient toast) until dismissed, since the visitor
+   needs a moment to actually press the key. */
+.crc-copy-fallback {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    z-index: 2147483003;
+    transform: translateX(-50%) translateY(8px);
+    background: var(--crc-surface-bg);
+    color: var(--crc-surface-fg);
+    border: 1px solid var(--crc-surface-border);
+    border-radius: 10px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+    padding: 0.9rem 1.1rem;
+    width: min(90vw, 360px);
+    font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.crc-copy-fallback.crc-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
+.crc-copy-fallback-msg {
+    margin-inline-end: 1.5rem;
+    margin-block-end: 0.5rem;
+}
+.crc-copy-fallback-input {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--crc-surface-border);
+    border-radius: 6px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+}
+.crc-copy-fallback-close {
+    position: absolute;
+    top: 0.3rem;
+    inset-inline-end: 0.5rem;
+    border: 0;
+    background: none;
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--crc-close-fg);
+    padding: 0.2rem;
+}
+.crc-copy-fallback-close:hover {
+    color: var(--crc-close-fg-hover);
+}
+.crc-copy-fallback-close:focus-visible,
+.crc-copy-fallback-input:focus-visible {
+    outline: 2px solid #4a90e2;
+    outline-offset: 2px;
+}

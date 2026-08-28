@@ -40,15 +40,21 @@
     const PREFIX = 'crc';
 
     /**
-     * Copies text to the clipboard, with a fallback for non-secure
-     * contexts. navigator.clipboard requires a secure context (HTTPS or
-     * localhost) - on a plain HTTP site it's simply undefined, so relying
-     * on it alone means "Copy URL"/"Share" silently do nothing there with
-     * no error and no feedback. document.execCommand('copy') is
-     * deprecated but still works in every major browser and has no
-     * secure-context requirement, so it's used as a fallback.
+     * Copies text to the clipboard, with fallbacks for non-secure
+     * contexts and for browsers that may drop execCommand entirely in
+     * the future. navigator.clipboard requires a secure context (HTTPS
+     * or localhost) - on a plain HTTP site it's simply undefined, so
+     * relying on it alone means "Copy URL"/"Share" silently do nothing
+     * there with no error and no feedback. document.execCommand('copy')
+     * is deprecated but still works in every major browser today and has
+     * no secure-context requirement, so it's tried next. Feature-detected
+     * (not just try/catch-ed) so a browser that has removed it entirely
+     * is treated the same as one that never had it, rather than throwing.
      */
     const copyTextLegacy = (text) => {
+        if (typeof document.execCommand !== 'function') {
+            return false;
+        }
         try {
             const textarea = document.createElement('textarea');
             textarea.value = text;
@@ -67,15 +73,6 @@
         } catch (e) {
             return false;
         }
-    };
-
-    const copyText = (text) => {
-        if (navigator.clipboard?.writeText) {
-            return navigator.clipboard.writeText(text)
-                .then(() => true)
-                .catch(() => copyTextLegacy(text));
-        }
-        return Promise.resolve(copyTextLegacy(text));
     };
 
     // Small transient status message so "Copy URL"/"Share" give visible
@@ -113,6 +110,92 @@
             : (cfg.copyFailedMessage || 'Could not copy to clipboard'));
     };
 
+    // Third and final tier: if neither the Clipboard API nor
+    // execCommand('copy') is available (a future browser having dropped
+    // both, or a Permissions-Policy blocking scripted clipboard access),
+    // show the text in a pre-selected, read-only field so the visitor can
+    // still copy it with their own Ctrl+C/Cmd+C - the browser's native
+    // keyboard copy, which does not depend on any scripted clipboard API
+    // at all and so cannot be broken the same way. Stays open until
+    // dismissed, unlike the transient toast, since the visitor needs a
+    // moment to actually press the key.
+    let copyFallbackEl = null;
+
+    const hideCopyFallback = () => {
+        if (copyFallbackEl?.classList.contains(`${PREFIX}-visible`)) {
+            copyFallbackEl.classList.remove(`${PREFIX}-visible`);
+            restoreFocus();
+        }
+    };
+
+    const buildCopyFallback = () => {
+        const box = document.createElement('div');
+        box.className = `${PREFIX}-copy-fallback`;
+        box.setAttribute('role', 'dialog');
+        box.setAttribute('aria-label', cfg.manualCopyMessage || 'Copy this link');
+
+        const close = document.createElement('button');
+        close.type = 'button';
+        close.className = `${PREFIX}-copy-fallback-close`;
+        close.innerHTML = '&times;';
+        close.setAttribute('aria-label', cfg.closeLabel || 'Close');
+        close.addEventListener('click', hideCopyFallback);
+        box.appendChild(close);
+
+        const msg = document.createElement('div');
+        msg.className = `${PREFIX}-copy-fallback-msg`;
+        box.appendChild(msg);
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.readOnly = true;
+        input.className = `${PREFIX}-copy-fallback-input`;
+        box.appendChild(input);
+
+        document.body.appendChild(box);
+        return box;
+    };
+
+    const showManualCopyFallback = (text) => {
+        if (!copyFallbackEl) {
+            copyFallbackEl = buildCopyFallback();
+        }
+
+        copyFallbackEl.querySelector(`.${PREFIX}-copy-fallback-msg`).textContent =
+            cfg.manualCopyMessage || 'Could not copy automatically. Press Ctrl+C (or Cmd+C on Mac) to copy:';
+
+        const input = copyFallbackEl.querySelector(`.${PREFIX}-copy-fallback-input`);
+        input.value = text;
+
+        copyFallbackEl.classList.add(`${PREFIX}-visible`);
+        captureFocus(input);
+        input.select();
+    };
+
+    // Orchestrates all three tiers for "Copy URL" / "Share"'s clipboard
+    // fallback: modern Clipboard API -> execCommand -> manual-select UI.
+    // Only ever shows ONE result to the visitor (either the toast or the
+    // manual-copy box), never both.
+    const performCopy = (text) => {
+        if (navigator.clipboard?.writeText) {
+            navigator.clipboard.writeText(text)
+                .then(() => notifyCopyResult(true))
+                .catch(() => {
+                    if (copyTextLegacy(text)) {
+                        notifyCopyResult(true);
+                    } else {
+                        showManualCopyFallback(text);
+                    }
+                });
+            return;
+        }
+        if (copyTextLegacy(text)) {
+            notifyCopyResult(true);
+        } else {
+            showManualCopyFallback(text);
+        }
+    };
+
     /**
      * Whitelisted custom-menu actions. No admin-provided string is ever
      * executed as code - each entry here is a fixed, audited function.
@@ -121,7 +204,7 @@
     const ACTIONS = {
         reload: () => window.location.reload(),
         copy_url: () => {
-            copyText(window.location.href).then(notifyCopyResult);
+            performCopy(window.location.href);
         },
         print: () => window.print(),
         scroll_top: () => window.scrollTo({ top: 0, behavior: 'smooth' }),
@@ -129,7 +212,7 @@
             if (navigator.share) {
                 navigator.share({ url: window.location.href, title: document.title }).catch(() => {});
             } else {
-                copyText(window.location.href).then(notifyCopyResult);
+                performCopy(window.location.href);
             }
         },
     };
@@ -793,10 +876,13 @@
         document.addEventListener('touchcancel', clearLongPressTimer, { passive: true });
     }
 
-    // Close menu / popup on outside interaction
+    // Close menu / popup / copy-fallback box on outside interaction
     document.addEventListener('click', (e) => {
         if (menuEl && !menuEl.contains(e.target)) {
             closeMenu();
+        }
+        if (copyFallbackEl && !copyFallbackEl.contains(e.target)) {
+            hideCopyFallback();
         }
     }, true);
 
@@ -809,11 +895,13 @@
     document.addEventListener('keydown', (e) => {
         const popupOpen = popupEl?.classList.contains(`${PREFIX}-visible`);
         const menuOpen = menuEl?.classList.contains(`${PREFIX}-visible`);
+        const copyFallbackOpen = copyFallbackEl?.classList.contains(`${PREFIX}-visible`);
 
         if (e.key === 'Escape') {
-            if (popupOpen || menuOpen) {
+            if (popupOpen || menuOpen || copyFallbackOpen) {
                 closeMenu();
                 closePopup();
+                hideCopyFallback();
             }
             return;
         }

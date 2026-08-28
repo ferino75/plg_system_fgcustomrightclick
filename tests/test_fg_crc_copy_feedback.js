@@ -12,6 +12,7 @@ function makeDom(cfgOverrides) {
         ],
         copiedMessage: 'Skopírované do schránky',
         copyFailedMessage: 'Nepodarilo sa skopírovať do schránky',
+        manualCopyMessage: 'Nepodarilo sa skopírovať automaticky. Stlačte Ctrl+C (alebo Cmd+C na Macu) pre skopírovanie:',
     }, cfgOverrides) };
     const optionsJson = JSON.stringify(opts).replace(/<\//g, '<\\/');
     const dom = new JSDOM(`<!DOCTYPE html>
@@ -64,13 +65,15 @@ async function main() {
         assert(toast.textContent === 'Skopírované do schránky', 'toast shows the localized "copied" message (got: ' + toast.textContent + ')');
     }
 
-    console.log('TEST: no navigator.clipboard at all (plain HTTP) - falls back to execCommand attempt, still shows a result toast');
+    console.log('TEST: no navigator.clipboard AND no execCommand (jsdom has neither) - falls through to the manual-copy fallback box, not a silent failure');
     {
         const dom = makeDom({});
         const w = dom.window;
         const d = w.document;
         // Simulate a non-secure-context browser: navigator.clipboard is
-        // simply undefined there, exactly like real HTTP pages.
+        // simply undefined there, exactly like real HTTP pages. jsdom
+        // also has no execCommand at all, so this exercises the third
+        // and final fallback tier.
         Object.defineProperty(w.navigator, 'clipboard', { value: undefined, configurable: true });
 
         let threw = false;
@@ -82,17 +85,17 @@ async function main() {
         }
         await wait(10);
 
-        assert(!threw, 'no crash when navigator.clipboard is entirely unavailable');
-        const toast = d.querySelector('.crc-toast');
-        assert(!!toast, 'toast still shown even without the Clipboard API');
-        assert(toast.classList.contains('crc-toast-visible'), 'toast is visible');
-        // jsdom does not implement document.execCommand at all, so the
-        // legacy fallback reports failure here - this still proves the
-        // wiring (attempt the fallback, then always show SOME feedback)
-        // instead of silently doing nothing, which was the actual bug
-        // being fixed. A real browser's execCommand('copy') would
-        // typically succeed here instead.
-        assert(toast.textContent === 'Nepodarilo sa skopírovať do schránky', 'shows the localized "copy failed" message when both copy paths are unavailable (got: ' + toast.textContent + ')');
+        assert(!threw, 'no crash when neither clipboard API is available');
+        assert(!d.querySelector('.crc-toast.crc-toast-visible'), 'no failure toast is shown - the manual fallback box replaces it');
+        const fallback = d.querySelector('.crc-copy-fallback.crc-visible');
+        assert(!!fallback, 'manual copy fallback box is shown instead');
+        // jsdom has neither the Clipboard API nor execCommand, so this
+        // exercises the third and final fallback tier - a real browser
+        // would typically succeed at tier 1 or 2 instead and never reach
+        // this box at all.
+        const fallbackInput = fallback.querySelector('.crc-copy-fallback-input');
+        assert(fallbackInput.value === w.location.href, 'the fallback box\'s input contains the URL to copy (got: ' + fallbackInput.value + ')');
+        assert(fallback.querySelector('.crc-copy-fallback-msg').textContent === 'Nepodarilo sa skopírovať automaticky. Stlačte Ctrl+C (alebo Cmd+C na Macu) pre skopírovanie:', 'shows the localized manual-copy instruction message');
     }
 
     console.log('TEST: missing copiedMessage/copyFailedMessage falls back to English defaults');
