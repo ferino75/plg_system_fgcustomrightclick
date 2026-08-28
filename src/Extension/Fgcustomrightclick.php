@@ -218,11 +218,24 @@ final class Fgcustomrightclick extends CMSPlugin implements SubscriberInterface
             return '';
         }
 
-        $filter = InputFilter::getInstance(
+        // NOTE (v1.6.8 fix): Joomla\Filter\InputFilter has no static
+        // getInstance() factory method - that only exists on the separate
+        // Joomla\CMS\Filter\InputFilter subclass. Instantiate directly via
+        // the constructor instead, which both classes expose publicly with
+        // the same signature, so this works regardless of which one
+        // actually gets autoloaded.
+        // NOTE (v1.6.8 fix): the ONLY_ALLOW_DEFINED_* constants are 0, and
+        // ONLY_BLOCK_DEFINED_* are 1 - passing 1,1 here (as an earlier,
+        // broken version of this code did) selects BLOCK-list mode: "block
+        // just these tags/attributes, allow everything else through" - the
+        // exact opposite of the intended "allow only these" whitelist.
+        // Using the named constants instead of magic numbers so this
+        // can't silently regress again.
+        $filter = new InputFilter(
             ['a', 'strong', 'em', 'b', 'i', 'br', 'p', 'span', 'ul', 'ol', 'li'],
             ['href', 'title', 'target'],
-            1,
-            1
+            InputFilter::ONLY_ALLOW_DEFINED_TAGS,
+            InputFilter::ONLY_ALLOW_DEFINED_ATTRIBUTES
         );
 
         $clean = $filter->clean($html, 'html');

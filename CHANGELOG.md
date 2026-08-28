@@ -1,5 +1,56 @@
 # Changelog - plg_system_fgcustomrightclick
 
+## 1.7.0 (2026-08-28) - CRITICAL HOTFIX
+
+**If you are running 1.6.6 or 1.6.7, upgrade immediately.** Both versions
+have a fatal error in `sanitizePopupMessage()` that crashes every single
+page load when the "Disable right click" mode is set to "Yes" (mode 1),
+regardless of whether a popup message is actually configured - the method
+still runs and throws before the page can render. This is a site-breaking
+bug, reported directly from a production installation.
+
+### Root cause and fix
+
+- **`Joomla\Filter\InputFilter::getInstance()` does not exist.** That
+  static factory method only exists on the separate, CMS-specific
+  `Joomla\CMS\Filter\InputFilter` subclass - the plain framework class
+  (`Joomla\Filter\InputFilter`, which is what was imported and used) only
+  has a public constructor. Calling the nonexistent static method threw
+  `Error: Call to undefined method Joomla\Filter\InputFilter::getInstance()`
+  on every request that reached it, which - because this runs inside
+  `onBeforeCompileHead`, before the page body is built - took the entire
+  page down with a fatal error, not just the popup feature.
+  Fixed by instantiating the class directly with `new InputFilter(...)`
+  instead, which is available and has an identical signature on both the
+  framework and the CMS subclass.
+- **A second, more serious bug was found while fixing the first one**: the
+  broken code passed `1, 1` for the `tagsMethod`/`attrMethod` constructor
+  arguments, intending "whitelist mode" (allow only the listed tags/
+  attributes). Per Joomla's own API documentation, `1` is actually
+  `ONLY_BLOCK_DEFINED_TAGS`/`ONLY_BLOCK_DEFINED_ATTRIBUTES` - **blacklist**
+  mode - the exact opposite of the intended behaviour. Had the crash not
+  happened, this would have silently let `<script>`, `<iframe>`, and
+  everything else *through* the "safe" tag list is meant to block, while
+  stripping the tags that were actually meant to be allowed. Fixed by
+  using the named constants (`InputFilter::ONLY_ALLOW_DEFINED_TAGS`,
+  `InputFilter::ONLY_ALLOW_DEFINED_ATTRIBUTES`, both value `0`) instead of
+  magic numbers, specifically to make this mistake structurally harder to
+  repeat.
+- **Root cause of both bugs**: the PHP-side unit test written for this
+  method in 1.6.6 used a hand-written stub of `Joomla\Filter\InputFilter`
+  that itself incorrectly modelled a `getInstance()` method (matching the
+  broken assumption, not the real class), so it gave false confidence -
+  the test passed while the real code was fatally broken. The stub has
+  been corrected to match Joomla's actual public API exactly (verified
+  directly against `api.joomla.org`'s framework documentation for this
+  release), and now captures the constructor's `tagsMethod`/`attrMethod`
+  arguments so the test asserts the *correct constant* is used, not just
+  that the call succeeds. Deliberately reintroducing both original bugs
+  during development of this fix confirmed the corrected test suite now
+  catches them.
+- No other file changed in this release - this is a pure hotfix to
+  `Fgcustomrightclick.php` and its test suite.
+
 ## 1.6.7 (2026-08-28)
 
 ### Localization/CSP fix + iOS long-press fix
