@@ -18,6 +18,16 @@
     user-select: text;
 }
 
+/* "Skip on interactive elements" (protectInteractive, default on): also
+   allow selecting text inside links and buttons. */
+.crc-noselect-interactive-exempt a,
+.crc-noselect-interactive-exempt a *,
+.crc-noselect-interactive-exempt button,
+.crc-noselect-interactive-exempt button * {
+    -webkit-user-select: text;
+    user-select: text;
+}
+
 /* ---- popup (mode 1) ---- */
 .crc-overlay {
     position: fixed;

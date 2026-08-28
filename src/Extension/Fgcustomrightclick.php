@@ -71,11 +71,12 @@ final class Fgcustomrightclick extends CMSPlugin implements SubscriberInterface
             return;
         }
 
-        $mode            = (int) $this->params->get('rightclick_mode', 0);
-        $disablePrint    = (int) $this->params->get('disable_print', 0);
-        $disableSelect   = (int) $this->params->get('disable_select', 0);
-        $disableImgDrag  = (int) $this->params->get('disable_imagedrag', 0);
-        $blockDevtools   = (int) $this->params->get('block_devtools', 0);
+        $mode               = (int) $this->params->get('rightclick_mode', 0);
+        $disablePrint       = (int) $this->params->get('disable_print', 0);
+        $disableSelect      = (int) $this->params->get('disable_select', 0);
+        $disableImgDrag     = (int) $this->params->get('disable_imagedrag', 0);
+        $blockDevtools      = (int) $this->params->get('block_devtools', 0);
+        $protectInteractive = (int) $this->params->get('protect_interactive', 1);
 
         // Nothing to do
         if ($mode === 0 && !$disablePrint && !$disableSelect && !$disableImgDrag && !$blockDevtools) {
@@ -83,11 +84,12 @@ final class Fgcustomrightclick extends CMSPlugin implements SubscriberInterface
         }
 
         $options = [
-            'mode'             => $mode,
-            'disablePrint'     => (bool) $disablePrint,
-            'disableSelect'    => (bool) $disableSelect,
-            'disableImageDrag' => (bool) $disableImgDrag,
-            'blockDevtools'    => (bool) $blockDevtools,
+            'mode'                => $mode,
+            'disablePrint'        => (bool) $disablePrint,
+            'disableSelect'       => (bool) $disableSelect,
+            'disableImageDrag'    => (bool) $disableImgDrag,
+            'blockDevtools'       => (bool) $blockDevtools,
+            'protectInteractive'  => (bool) $protectInteractive,
         ];
 
         if ($mode === 1) {

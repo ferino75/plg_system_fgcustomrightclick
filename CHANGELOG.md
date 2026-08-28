@@ -1,5 +1,36 @@
 # Changelog - plg_system_fgcustomrightclick
 
+## 1.5.0 (2026-08-28)
+
+### UX/usability fix (behaviour change)
+
+- **Right-click blocking (mode "Yes") and the custom menu (mode "Custom
+  menu") no longer apply, by default, to links, form fields, buttons, or
+  editable content.** Previously every mode-1/mode-3 protection called
+  `e.preventDefault()` unconditionally, which also broke the extremely
+  common "right-click a link -> open in new tab" browser gesture, could
+  interfere with pasting into search/contact-form fields, and disrupted
+  third-party editors, maps, and video embeds relying on their own
+  right-click behaviour.
+- Added a new "Skip on interactive elements" option (`protect_interactive`),
+  **enabled by default**. When on, `input`, `textarea`, `select`, `button`,
+  `a`, and `[contenteditable]` elements keep their normal browser
+  right-click menu and text-selection/copy behaviour, even while the
+  protections above are active on the rest of the page. Images remain
+  fully protected regardless of this setting - the point of the plugin
+  (deterring easy image saving) is unaffected.
+- Turning the option off restores the previous "block truly everywhere,
+  including links and forms" behaviour, for site owners who deliberately
+  want that.
+- The `disableSelect` (copy/cut/selection blocking) protection now honours
+  the same exemption for links and buttons; form fields and editable
+  content were already exempt from it regardless of this setting (that
+  part of the behaviour, from earlier versions, is unchanged).
+- Added `test_fg_crc_interactive_exempt.js` (16 jsdom assertions) covering
+  both states of the new toggle, the "images only" mode being unaffected,
+  and that the `disableSelect` copy-blocking behaviour follows the same
+  exemption rules.
+
 ## 1.4.2 (2026-08-28)
 
 ### Security fix

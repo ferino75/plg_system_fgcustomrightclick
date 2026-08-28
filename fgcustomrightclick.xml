@@ -5,7 +5,7 @@
 	<creationDate>2026-08-27</creationDate>
 	<copyright>(C) 2026 Fero. All rights reserved.</copyright>
 	<license>GNU General Public License version 2 or later</license>
-	<version>1.4.2</version>
+	<version>1.5.0</version>
 	<description>PLG_SYSTEM_FGCUSTOMRIGHTCLICK_XML_DESCRIPTION</description>
 	<namespace path="src">FG\Plugin\System\Fgcustomrightclick</namespace>
 
@@ -89,6 +89,19 @@
 					label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_BLOCK_DEVTOOLS_LABEL"
 					description="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_BLOCK_DEVTOOLS_DESC"
 					default="0"
+					filter="integer"
+				>
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>
+
+				<field
+					name="protect_interactive"
+					type="radio"
+					layout="joomla.form.field.radio.switcher"
+					label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_PROTECT_INTERACTIVE_LABEL"
+					description="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_PROTECT_INTERACTIVE_DESC"
+					default="1"
 					filter="integer"
 				>
 					<option value="0">JNO</option>

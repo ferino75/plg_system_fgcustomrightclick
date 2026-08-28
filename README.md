@@ -2,7 +2,7 @@
 
 [![Joomla](https://img.shields.io/badge/Joomla-6%2C%205%2C%204-1a6877?logo=joomla)](https://www.joomla.org/)
 [![License: GPL v2](https://img.shields.io/badge/License-GPLv2-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.4.2-ff6b4a)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.5.0-ff6b4a)](CHANGELOG.md)
 
 A native Joomla system plugin that disables printing, text selection/copy,
 image dragging, developer-tools keyboard shortcuts, and the browser's
@@ -22,6 +22,10 @@ Click for Joomla 3.X" extension.
 - Disable image dragging
 - Block developer-tools keyboard shortcuts (F12, Ctrl+Shift+I/J/C,
   Cmd+Opt+I/J/C, Ctrl/Cmd+U)
+- Skip protections on interactive elements by default (links, form
+  fields, buttons, editable content) - keeps the normal "right-click a
+  link to open it in a new tab" gesture and form usability intact;
+  turn off to block truly everywhere
 - Four right-click modes: default / disabled with popup / images-only /
   fully custom menu
 - Custom context menu builder: link or built-in action items (reload,

@@ -164,6 +164,25 @@
         return tag === 'input' || tag === 'textarea' || tag === 'select' || target.isContentEditable;
     };
 
+    // Elements that keep their normal browser behaviour (right-click menu,
+    // text selection/copy) even when protections are active, so the
+    // protections don't break form usability, editors, or the very common
+    // "right click a link -> open in new tab" gesture. Gated by the
+    // protectInteractive config flag (default on).
+    const INTERACTIVE_EXEMPT_SELECTOR = 'input, textarea, select, button, a, [contenteditable="true"], [contenteditable=""]';
+
+    const isInteractiveExempt = (target) => {
+        if (!cfg.protectInteractive || !target?.closest) {
+            return false;
+        }
+        return !!target.closest(INTERACTIVE_EXEMPT_SELECTOR);
+    };
+
+    // isEditable() is always exempt (form fields/editors must stay usable
+    // regardless of the toggle); isInteractiveExempt() additionally covers
+    // buttons and links, only when protectInteractive is enabled.
+    const isProtectionExempt = (target) => isEditable(target) || isInteractiveExempt(target);
+
     /* ------------------------------------------------------------------ *
      *  Popup (mode 1)
      * ------------------------------------------------------------------ */
@@ -425,8 +444,14 @@
                 return;
             }
 
-            // Do not break form fields usability in menu/popup modes? The
-            // original plugin blocks everywhere - keep it consistent.
+            // Interactive elements (links, forms, buttons, editors) keep
+            // their normal right-click menu by default - see
+            // isInteractiveExempt(). Set "Skip on interactive elements" to
+            // No in the plugin options to block truly everywhere instead.
+            if (isInteractiveExempt(e.target)) {
+                return;
+            }
+
             e.preventDefault();
 
             if (cfg.mode === 1) {
@@ -514,17 +539,20 @@
     // Disable text selection + copy/cut
     if (cfg.disableSelect) {
         document.documentElement.classList.add(`${PREFIX}-noselect`);
+        if (cfg.protectInteractive) {
+            document.documentElement.classList.add(`${PREFIX}-noselect-interactive-exempt`);
+        }
 
         ['copy', 'cut', 'selectstart'].forEach((type) => {
             document.addEventListener(type, (e) => {
-                if (!isEditable(e.target)) {
+                if (!isProtectionExempt(e.target)) {
                     e.preventDefault();
                 }
             }, true);
         });
 
         document.addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && !isEditable(e.target)) {
+            if ((e.ctrlKey || e.metaKey) && !isProtectionExempt(e.target)) {
                 const k = e.key.toLowerCase();
                 if (k === 'c' || k === 'x' || k === 'a') {
                     e.preventDefault();
