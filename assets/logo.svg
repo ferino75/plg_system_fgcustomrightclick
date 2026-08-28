@@ -33,4 +33,12 @@
            L 214 318
            Z"
         fill="#FFFFFF" stroke="#081D32" stroke-width="6" stroke-linejoin="round"/>
+
+  <!-- "prohibited" diagonal stripe across the whole mark (menu + cursor) -
+       bottom-left to top-right so it sweeps through both the cursor
+       (lower-left) and the menu panel (upper-right). White outline
+       underneath for contrast against both the navy tile and the white
+       panel, coral stripe on top. -->
+  <line x1="90" y1="422" x2="422" y2="90" stroke="#FFFFFF" stroke-width="50" stroke-linecap="round"/>
+  <line x1="90" y1="422" x2="422" y2="90" stroke="#FF6B4A" stroke-width="34" stroke-linecap="round"/>
 </svg>
