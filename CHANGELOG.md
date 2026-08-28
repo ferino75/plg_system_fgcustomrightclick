@@ -1,5 +1,32 @@
 # Changelog - plg_system_fgcustomrightclick
 
+## 1.6.2 (2026-08-28)
+
+### Accessibility & localization fix
+
+- **Popup dialog now has complete ARIA bindings.** `role="dialog"` and
+  `aria-modal="true"` were already present, but the accessible name/
+  description were missing: `aria-labelledby` and `aria-describedby` are
+  now set on the overlay, pointing at real `id`s on the title and body
+  elements. When there is no title (it's an optional field),
+  `aria-labelledby` is simply omitted rather than pointing at a
+  nonexistent element - a screen reader still gets the description via
+  `aria-describedby` either way.
+- **The popup's close button and the custom menu's `aria-label` were
+  hard-coded in English** (`"Close"` / `"Context menu"`) regardless of
+  the site's language. Both are now translated via the plugin's own
+  language file (`Text::_()`), loaded explicitly with `$this->loadLanguage()`
+  only when the popup or custom menu mode is actually active - consistent
+  with `autoloadLanguage = false` and the reasoning already documented on
+  that property. Both strings fall back to their English default if a
+  script-options payload somehow lacks them (e.g. a stale cache from
+  before this upgrade), so nothing breaks visually either way.
+- Added `test_fg_crc_aria.js` (12 jsdom assertions): the `aria-labelledby`/
+  `aria-describedby` ids resolve to the real elements in the DOM (not just
+  string-matched), the no-title case doesn't fabricate a label, and both
+  localized strings use the configured value with a verified English
+  fallback when absent.
+
 ## 1.6.1 (2026-08-28)
 
 ### CSS robustness fix

@@ -9,6 +9,7 @@
 namespace FG\Plugin\System\Fgcustomrightclick\Extension;
 
 use Joomla\CMS\Document\HtmlDocument;
+use Joomla\CMS\Language\Text;
 use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\Event\Event;
 use Joomla\Event\SubscriberInterface;
@@ -96,6 +97,13 @@ final class Fgcustomrightclick extends CMSPlugin implements SubscriberInterface
             'protectBackgroundImages'  => (bool) $protectBackgroundImages,
         ];
 
+        // Both the popup and the custom menu render ARIA strings that were
+        // previously hard-coded in English on the frontend; load our own
+        // language file once here so Text::_() below is translated.
+        if ($mode === 1 || $mode === 3) {
+            $this->loadLanguage();
+        }
+
         if ($mode === 1) {
             $options['popup'] = [
                 'enabled' => (bool) ((int) $this->params->get('popup_enabled', 1)),
@@ -103,10 +111,12 @@ final class Fgcustomrightclick extends CMSPlugin implements SubscriberInterface
                 'message' => (string) $this->params->get('popup_message', ''),
                 'timeout' => (int) $this->params->get('popup_timeout', 0),
             ];
+            $options['closeLabel'] = Text::_('PLG_SYSTEM_FGCUSTOMRIGHTCLICK_POPUP_CLOSE_LABEL');
         }
 
         if ($mode === 3) {
             $options['menuItems'] = $this->getMenuItems();
+            $options['menuLabel'] = Text::_('PLG_SYSTEM_FGCUSTOMRIGHTCLICK_MENU_ARIA_LABEL');
         }
 
         $wa = $doc->getWebAssetManager();

@@ -269,11 +269,17 @@
         return template.innerHTML;
     };
 
+    // Namespaced beyond the short "crc" class prefix to avoid colliding
+    // with any id the site's own markup might already use.
+    const POPUP_TITLE_ID = 'fgcustomrightclick-popup-title';
+    const POPUP_BODY_ID = 'fgcustomrightclick-popup-body';
+
     const buildPopup = () => {
         const overlay = document.createElement('div');
         overlay.className = `${PREFIX}-overlay`;
         overlay.setAttribute('role', 'dialog');
         overlay.setAttribute('aria-modal', 'true');
+        overlay.setAttribute('aria-describedby', POPUP_BODY_ID);
 
         const box = document.createElement('div');
         box.className = `${PREFIX}-popup`;
@@ -282,7 +288,7 @@
         close.type = 'button';
         close.className = `${PREFIX}-close`;
         close.innerHTML = '&times;';
-        close.setAttribute('aria-label', 'Close');
+        close.setAttribute('aria-label', cfg.closeLabel || 'Close');
         close.addEventListener('click', closePopup);
 
         box.appendChild(close);
@@ -290,12 +296,15 @@
         if (cfg.popup?.title) {
             const h = document.createElement('div');
             h.className = `${PREFIX}-title`;
+            h.id = POPUP_TITLE_ID;
             h.textContent = cfg.popup.title;
             box.appendChild(h);
+            overlay.setAttribute('aria-labelledby', POPUP_TITLE_ID);
         }
 
         const body = document.createElement('div');
         body.className = `${PREFIX}-body`;
+        body.id = POPUP_BODY_ID;
         // Admin-authored HTML, restricted to a safe tag/attribute allowlist
         // (see sanitizeHtml above) before it is ever injected into the page.
         body.innerHTML = cfg.popup?.message ? sanitizeHtml(cfg.popup.message) : '';
@@ -368,7 +377,7 @@
         const menu = document.createElement('div');
         menu.className = `${PREFIX}-menu`;
         menu.setAttribute('role', 'menu');
-        menu.setAttribute('aria-label', 'Context menu');
+        menu.setAttribute('aria-label', cfg.menuLabel || 'Context menu');
 
         menuItems.forEach((item) => {
             if (item.type === 'separator') {
