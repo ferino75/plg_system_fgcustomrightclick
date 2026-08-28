@@ -2,7 +2,7 @@
 
 [![Joomla](https://img.shields.io/badge/Joomla-6%2C%205%2C%204-1a6877?logo=joomla)](https://www.joomla.org/)
 [![License: GPL v2](https://img.shields.io/badge/License-GPLv2-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.7.2-ff6b4a)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.8.0-ff6b4a)](CHANGELOG.md)
 
 A native Joomla system plugin that disables printing, text selection/copy,
 image dragging, developer-tools keyboard shortcuts, and the browser's
@@ -41,6 +41,10 @@ Click for Joomla 3.X" extension.
   just HTTPS) and show a brief confirmation toast either way
 - Full keyboard accessibility: focus trap in the popup, roving-tabindex
   arrow-key navigation in the custom menu, focus returned on close
+- Follows the site template's own light/dark theme (`data-bs-theme` /
+  `data-color-scheme`) rather than the visitor's OS preference, respects
+  `prefers-reduced-motion`, and uses logical CSS properties for RTL
+  languages
 
 ## Installation
 

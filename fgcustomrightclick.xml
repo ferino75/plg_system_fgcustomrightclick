@@ -5,7 +5,7 @@
 	<creationDate>2026-08-27</creationDate>
 	<copyright>(C) 2026 Fero. All rights reserved.</copyright>
 	<license>GNU General Public License version 2 or later</license>
-	<version>1.7.2</version>
+	<version>1.8.0</version>
 	<description>PLG_SYSTEM_FGCUSTOMRIGHTCLICK_XML_DESCRIPTION</description>
 	<namespace path="src">FG\Plugin\System\Fgcustomrightclick</namespace>
 
@@ -41,6 +41,7 @@
 					label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_USERGROUPS_LABEL"
 					description="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_USERGROUPS_DESC"
 					multiple="true"
+					layout="joomla.form.field.list-fancy-select"
 				/>
 
 				<field
@@ -162,6 +163,7 @@
 					description="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_POPUP_ENABLED_DESC"
 					default="1"
 					filter="integer"
+					showon="rightclick_mode:1"
 				>
 					<option value="0">JNO</option>
 					<option value="1">JYES</option>
@@ -172,7 +174,7 @@
 					type="text"
 					label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_POPUP_TITLE_LABEL"
 					default=""
-					showon="popup_enabled:1"
+					showon="rightclick_mode:1[AND]popup_enabled:1"
 				/>
 
 				<field
@@ -183,7 +185,7 @@
 					label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_POPUP_MESSAGE_LABEL"
 					description="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_POPUP_MESSAGE_DESC"
 					default=""
-					showon="popup_enabled:1"
+					showon="rightclick_mode:1[AND]popup_enabled:1"
 				/>
 
 				<field
@@ -196,7 +198,7 @@
 					label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_POPUP_TIMEOUT_LABEL"
 					description="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_POPUP_TIMEOUT_DESC"
 					filter="integer"
-					showon="popup_enabled:1"
+					showon="rightclick_mode:1[AND]popup_enabled:1"
 				/>
 
 			</fieldset>
@@ -211,6 +213,7 @@
 					multiple="true"
 					layout="joomla.form.field.subform.repeatable"
 					buttons="add,remove,move"
+					showon="rightclick_mode:3"
 				>
 					<form>
 						<field

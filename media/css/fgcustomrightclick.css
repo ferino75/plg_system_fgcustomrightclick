@@ -3,6 +3,62 @@
  * (C) 2026 Fero - GPL v2+
  */
 
+/* ---- theming ----
+   Custom properties so the popup/menu surface colours can flip for dark
+   mode from a single place. Prefer the template's own explicit theme
+   signal over the visitor's OS-level preference, so a light-themed site
+   doesn't render a jarringly mismatched dark popup/menu just because the
+   visitor's OS happens to be set to dark (and vice versa for a
+   dark-themed site with a light-OS visitor). Checked in this order:
+   Bootstrap 5's data-bs-theme (used by Joomla 5/6's default Cassiopeia
+   template and most Bootstrap-5-based third-party templates), then
+   data-color-scheme (an alternate convention some templates use).
+   prefers-color-scheme is only used as a fallback when the page declares
+   neither attribute at all. */
+:root {
+    --crc-surface-bg: #fff;
+    --crc-surface-fg: #222;
+    --crc-surface-border: rgba(0, 0, 0, 0.12);
+    --crc-item-hover-bg: #f0f2f5;
+    --crc-sep-color: rgba(0, 0, 0, 0.1);
+    --crc-close-fg: #888;
+    --crc-close-fg-hover: #000;
+}
+
+:root[data-bs-theme="dark"],
+:root[data-color-scheme="dark"] {
+    --crc-surface-bg: #1f2227;
+    --crc-surface-fg: #e6e6e6;
+    --crc-surface-border: rgba(255, 255, 255, 0.12);
+    --crc-item-hover-bg: #2c3037;
+    --crc-sep-color: rgba(255, 255, 255, 0.12);
+    --crc-close-fg: #aaa;
+    --crc-close-fg-hover: #fff;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme]):not([data-color-scheme]) {
+        --crc-surface-bg: #1f2227;
+        --crc-surface-fg: #e6e6e6;
+        --crc-surface-border: rgba(255, 255, 255, 0.12);
+        --crc-item-hover-bg: #2c3037;
+        --crc-sep-color: rgba(255, 255, 255, 0.12);
+        --crc-close-fg: #aaa;
+        --crc-close-fg-hover: #fff;
+    }
+}
+
+/* Respect the visitor's OS-level "reduce motion" accessibility setting by
+   disabling every transition this plugin adds. */
+@media (prefers-reduced-motion: reduce) {
+    .crc-overlay,
+    .crc-popup,
+    .crc-menu,
+    .crc-toast {
+        transition: none !important;
+    }
+}
+
 /* ---- text selection off ----
    !important on both the blocking rule and the exemptions below: without
    it, a template's own CSS with equal specificity (e.g. "body input {...}")
@@ -69,8 +125,8 @@
     max-width: min(480px, calc(100vw - 2rem));
     max-height: calc(100vh - 2rem);
     overflow: auto;
-    background: #fff;
-    color: #222;
+    background: var(--crc-surface-bg);
+    color: var(--crc-surface-fg);
     border-radius: 10px;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
     padding: 1.25rem 1.5rem;
@@ -86,28 +142,29 @@
 .crc-title {
     font-size: 1.1rem;
     font-weight: 700;
-    margin: 0 1.5rem 0.5rem 0;
+    margin-block: 0 0.5rem;
+    margin-inline: 0 1.5rem;
 }
 
 .crc-body {
-    margin-right: 1rem;
+    margin-inline-end: 1rem;
 }
 
 .crc-close {
     position: absolute;
     top: 0.4rem;
-    right: 0.5rem;
+    inset-inline-end: 0.5rem;
     border: 0;
     background: none;
     font-size: 1.5rem;
     line-height: 1;
     cursor: pointer;
-    color: #888;
+    color: var(--crc-close-fg);
     padding: 0.25rem;
 }
 
 .crc-close:hover {
-    color: #000;
+    color: var(--crc-close-fg-hover);
 }
 
 .crc-close:focus-visible {
@@ -122,9 +179,9 @@
     z-index: 2147483001;
     min-width: 200px;
     max-width: 320px;
-    background: #fff;
-    color: #222;
-    border: 1px solid rgba(0, 0, 0, 0.12);
+    background: var(--crc-surface-bg);
+    color: var(--crc-surface-fg);
+    border: 1px solid var(--crc-surface-border);
     border-radius: 8px;
     box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22);
     padding: 0.3rem;
@@ -134,6 +191,14 @@
     transform: scale(0.97);
     transform-origin: top left;
     transition: opacity 0.1s ease, transform 0.1s ease;
+}
+
+/* The menu's own left/top are set in pixels by JS from the click/touch
+   position, which is direction-agnostic (mouse and touch coordinates are
+   never mirrored for RTL) - only the pop-out animation's anchor corner
+   needs to flip so it visually "grows" from the correct side. */
+.crc-menu:dir(rtl) {
+    transform-origin: top right;
 }
 
 .crc-menu.crc-visible {
@@ -149,7 +214,7 @@
     width: 100%;
     border: 0;
     background: none;
-    text-align: left;
+    text-align: start;
     padding: 0.45rem 0.7rem;
     border-radius: 5px;
     cursor: pointer;
@@ -162,7 +227,7 @@
 
 .crc-menu-item:hover,
 .crc-menu-item:focus-visible {
-    background: #f0f2f5;
+    background: var(--crc-item-hover-bg);
     outline: none;
 }
 
@@ -185,30 +250,7 @@
 .crc-menu-sep {
     height: 1px;
     margin: 0.3rem 0.5rem;
-    background: rgba(0, 0, 0, 0.1);
-}
-
-/* dark mode friendliness */
-@media (prefers-color-scheme: dark) {
-    .crc-popup,
-    .crc-menu {
-        background: #1f2227;
-        color: #e6e6e6;
-        border-color: rgba(255, 255, 255, 0.12);
-    }
-    .crc-menu-item:hover,
-    .crc-menu-item:focus-visible {
-        background: #2c3037;
-    }
-    .crc-menu-sep {
-        background: rgba(255, 255, 255, 0.12);
-    }
-    .crc-close {
-        color: #aaa;
-    }
-    .crc-close:hover {
-        color: #fff;
-    }
+    background: var(--crc-sep-color);
 }
 
 /* ---- disable printing ----
@@ -246,7 +288,8 @@
    Confirms "Copy URL" / "Share" (clipboard fallback) actually did
    something, since on a plain HTTP site the Clipboard API is unavailable
    (secure-context only) and the execCommand('copy') fallback used there
-   gives no feedback of its own. */
+   gives no feedback of its own. Horizontally centred regardless of
+   document direction, so no RTL-specific positioning is needed here. */
 .crc-toast {
     position: fixed;
     left: 50%;

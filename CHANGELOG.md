@@ -1,5 +1,67 @@
 # Changelog - plg_system_fgcustomrightclick
 
+## 1.8.0 (2026-08-28)
+
+### Theming/accessibility fixes + admin UX cleanup
+
+**Dark mode now follows the site's own template theme, not just the OS:**
+- The popup/menu previously used `@media (prefers-color-scheme: dark)`
+  unconditionally, so a light-themed site rendered a mismatched dark
+  popup/menu whenever the visitor's OS happened to be set to dark (and a
+  dark-themed site got a mismatched light popup for a light-OS visitor).
+  Now checks, in priority order: Bootstrap 5's `data-bs-theme` (used by
+  Joomla 5/6's default Cassiopeia template and most Bootstrap-5-based
+  third-party templates), then `data-color-scheme` (an alternate
+  convention some templates use), and only falls back to
+  `prefers-color-scheme` when the page declares neither attribute.
+  Implemented via CSS custom properties so the light/dark values live in
+  exactly one place each.
+
+**Accessibility:**
+- Added a `prefers-reduced-motion: reduce` override that disables every
+  transition this plugin adds (popup fade/slide, menu scale, toast
+  fade), for visitors who have that OS-level accessibility setting on.
+
+**RTL support:**
+- Replaced hard-coded physical CSS properties with logical ones so the
+  popup/menu render correctly in right-to-left languages: `text-align:
+  left` → `text-align: start`, the close button's `right` position →
+  `inset-inline-end`, and the title/body's `margin-right` spacing →
+  `margin-inline-end`. The custom menu's pop-out animation now anchors
+  from the correct corner via `:dir(rtl)`. (Positioning driven by JS from
+  click/touch coordinates - the menu and toast's `left`/`top` - is
+  unaffected, since mouse/touch coordinates are never mirrored for RTL.)
+
+**Admin UX:**
+- The "Popup" and "Custom menu" fieldsets' fields are now hidden unless
+  the matching right-click mode is actually selected
+  (`showon="rightclick_mode:1"` / `:3"`, combined with the existing
+  `popup_enabled` condition via `[AND]` where applicable), instead of
+  always being visible regardless of the selected mode. Fieldset-level
+  `showon` (hiding the whole tab) was considered but not used - its
+  Joomla-core support could not be confirmed with the same confidence as
+  field-level `showon`, which is thoroughly documented back to Joomla
+  3.2.4; the field-level approach achieves the same practical outcome
+  (irrelevant settings hidden) without depending on that.
+- "Apply to user groups" now uses
+  `layout="joomla.form.field.list-fancy-select"` (Joomla's improved
+  checkbox-tree-with-search widget for multi-select fields) instead of a
+  plain HTML multi-select box, confirmed against Joomla's own
+  documentation and a core pull request that made this exact change to
+  the same field type.
+- Removed the hard-coded `1.3.0` left over in all four language file
+  header comments since the FG rebrand (should have been updated on every
+  release since - this is why it's better not to duplicate the version
+  number in more than one place: the header comment no longer states a
+  version at all, so it can't go stale again).
+- Added `test_fg_crc_css_theming.js` (21 structural assertions checking
+  the stylesheet's content directly): confirms the explicit-theme
+  selectors and the prefers-color-scheme fallback scoping, that every
+  animated element is covered by the reduced-motion override, that no
+  hard-coded `text-align: left` remains, and that the theming custom
+  properties are both defined and actually used by the components that
+  need to change colour for dark mode.
+
 ## 1.7.2 (2026-08-28)
 
 ### Print/action conflict warning + clipboard fix on HTTP
