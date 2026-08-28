@@ -1,5 +1,32 @@
 # Changelog - plg_system_fgcustomrightclick
 
+## 1.6.4 (2026-08-28)
+
+### Bug fix - {url} placeholder in custom-menu link items
+
+- **A link item whose value was nothing but `{url}` (e.g. a "link to this
+  page" menu entry) was broken.** The placeholder was always
+  percent-encoded before substitution, which is correct when `{url}` sits
+  inside a URL component (e.g. `?text={url}`) but wrong when it *is* the
+  whole destination: the result (`https%3A%2F%2Fexample.com%2F...`) has no
+  `://`, so the browser treated it as a broken relative path instead of
+  navigating to the page.
+- Fixed by special-casing the whole-value case: when the (trimmed) value
+  is exactly `{url}`, the raw, unencoded page URL is used directly.
+  Everywhere else - the common case of `{url}` embedded inside a link,
+  e.g. a share-intent query string - it is still percent-encoded exactly
+  as before, so existing configurations using that pattern are unaffected.
+- This is a targeted fix for the reported case rather than a general
+  templating engine: `{url}` combined with extra text that is *not* a
+  query string (e.g. `{url}#section`) still falls back to the
+  percent-encoded substitution, which is documented as a known limitation
+  in both the field description and the new test suite below, rather than
+  silently mishandled.
+- Added `test_fg_crc_url_placeholder.js` (5 jsdom assertions) covering the
+  whole-value case (with and without surrounding whitespace), the
+  unaffected query-string case, and the documented partial-value
+  limitation.
+
 ## 1.6.3 (2026-08-28)
 
 ### Honesty & UX fix - developer-tools deterrent

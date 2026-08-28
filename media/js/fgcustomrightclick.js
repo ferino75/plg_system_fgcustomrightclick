@@ -365,7 +365,19 @@
             console.warn?.('[fgcustomrightclick] blocked link item with an unsafe URL scheme');
             return;
         }
-        const url = item.value.split('{url}').join(encodeURIComponent(window.location.href));
+        // {url} is normally percent-encoded, since the placeholder is
+        // usually embedded inside a URL component (e.g. "?text={url}") and
+        // needs escaping there to avoid breaking the surrounding query
+        // string. But when the whole (trimmed) value is nothing but
+        // "{url}", it represents the current page as a complete
+        // destination URL on its own - encoding it in that case turns it
+        // into a percent-encoded string with no "://", which browsers then
+        // treat as a broken relative path instead of navigating back to
+        // the site.
+        const trimmedValue = item.value.trim();
+        const url = trimmedValue === '{url}'
+            ? window.location.href
+            : item.value.split('{url}').join(encodeURIComponent(window.location.href));
         if (item.newtab) {
             window.open(url, '_blank', 'noopener');
         } else {
