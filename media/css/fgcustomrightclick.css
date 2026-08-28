@@ -197,3 +197,34 @@
         color: #fff;
     }
 }
+
+/* ---- disable printing ----
+   Class-toggled (added by JS on <html> only when "Disable printing" is
+   on) rather than a dynamically-injected <style> tag, so a site's
+   Content-Security-Policy style-src directive (if it lacks
+   'unsafe-inline') can't silently drop it. The message text is set by
+   JS as a data attribute on <body> (already translated server-side) and
+   read here via attr(), so no localized string needs to live in CSS. */
+@media print {
+    .crc-print-disabled body > * {
+        display: none !important;
+    }
+    .crc-print-disabled body::before {
+        content: attr(data-crc-print-message);
+        display: block;
+        padding: 2rem;
+        font: 16px/1.5 sans-serif;
+    }
+}
+
+/* ---- iOS/WebKit long-press "Save Image"/"Save Video" callout ----
+   contextmenu/dragstart prevention (JS) has no effect on this - iOS
+   Safari's long-press action sheet is a native WebKit behaviour, not
+   routed through those DOM events. This is the only way to suppress it. */
+.crc-touch-callout-off img,
+.crc-touch-callout-off picture {
+    -webkit-touch-callout: none;
+}
+.crc-touch-callout-off-video video {
+    -webkit-touch-callout: none;
+}

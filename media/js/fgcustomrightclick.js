@@ -691,12 +691,21 @@
         }, true);
     }
 
-    // Disable printing
+    // Disable printing. Delivered via a CSS class toggled on <html> (see
+    // fgcustomrightclick.css) rather than a dynamically-injected <style>
+    // tag: a site running a Content-Security-Policy without 'unsafe-inline'
+    // in style-src would silently drop an inline <style>, making the
+    // print-block invisible. An externally-loaded stylesheet is not
+    // affected by that. The message text is translated server-side and
+    // delivered here via a data attribute, read in CSS with attr() - this
+    // keeps the localized string out of the stylesheet entirely, so no
+    // inline style content is ever needed for it either.
     if (cfg.disablePrint) {
-        // Hide content in print media
-        const style = document.createElement('style');
-        style.textContent = '@media print { body > * { display: none !important; } body::before { content: "Printing is disabled on this website."; display: block; padding: 2rem; font: 16px/1.5 sans-serif; } }';
-        document.head.appendChild(style);
+        document.documentElement.classList.add(`${PREFIX}-print-disabled`);
+        document.body.setAttribute(
+            'data-crc-print-message',
+            cfg.printDisabledMessage || 'Printing is disabled on this website.'
+        );
 
         // Block Ctrl/Cmd+P. preventDefault() alone stops the browser's own
         // print dialog; not calling stopImmediatePropagation() here for the
@@ -707,5 +716,19 @@
                 e.preventDefault();
             }
         }, true);
+    }
+
+    // iOS Safari (and other WebKit-based browsers on iOS) still offer a
+    // "Save Image"/"Save Video" action sheet on a long-press even when
+    // contextmenu and dragstart are both prevented - that native "callout"
+    // isn't routed through either of those DOM events on iOS. Without
+    // -webkit-touch-callout: none, the images-only protection mode in
+    // particular does almost nothing on an iPhone/iPad. This is CSS-only,
+    // so it's applied via classes rather than per-element inline styles.
+    if (cfg.mode > 0 || cfg.disableImageDrag) {
+        document.documentElement.classList.add(`${PREFIX}-touch-callout-off`);
+    }
+    if (cfg.protectVideo) {
+        document.documentElement.classList.add(`${PREFIX}-touch-callout-off-video`);
     }
 })();

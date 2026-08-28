@@ -1,5 +1,41 @@
 # Changelog - plg_system_fgcustomrightclick
 
+## 1.6.7 (2026-08-28)
+
+### Localization/CSP fix + iOS long-press fix
+
+- **The print-disabled message ("Printing is disabled on this website.")
+  was hard-coded in English**, unlike the ARIA strings which already go
+  through `Text::_()`. Worse, it was delivered via a dynamically-injected
+  `<style>` tag - on a site running a Content-Security-Policy without
+  `'unsafe-inline'` in `style-src` (e.g. via a Joomla CSP plugin), that
+  inline style is silently dropped by the browser and the print-block
+  simply doesn't apply. Fixed both problems together: the CSS moved into
+  the plugin's own external stylesheet (already loaded via
+  `<link rel="stylesheet">`, which ordinary CSP configurations don't
+  restrict the way inline `<style>` is), gated behind a class JS toggles
+  on `<html>`. The message text itself is translated server-side via
+  `Text::_()` and delivered as a `data-crc-print-message` attribute on
+  `<body>`, read in CSS with `attr()` - so no localized string needs to
+  live in CSS at all, and there is no inline style content of any kind
+  left for this feature.
+- **Added `-webkit-touch-callout: none` for images (and video, when
+  "Also protect video" is on).** `contextmenu`/`dragstart` prevention has
+  no effect on iOS Safari's (and other WebKit-on-iOS browsers') native
+  long-press "Save Image"/"Save Video" action sheet - that callout isn't
+  routed through either DOM event on iOS. Without this, the "Only for
+  images" mode in particular did almost nothing on an iPhone/iPad. Applied
+  via CSS classes (`crc-touch-callout-off`, `crc-touch-callout-off-video`)
+  toggled whenever right-click protection or "Disable image dragging" is
+  active, rather than per-element inline styles.
+- As before, this remains a deterrent, not DRM - a long-press screenshot
+  or any other capture method is unaffected and always will be.
+- Added `test_fg_crc_print_and_touch.js` (12 jsdom assertions): confirms
+  no `<style>` element is ever dynamically created, the localized message
+  is correctly delivered via the data attribute with an English fallback,
+  Ctrl+P blocking still works, and both touch-callout classes are added
+  under exactly the right conditions.
+
 ## 1.6.6 (2026-08-28)
 
 ### Popup HTML sanitizer fixes (server-side hardening + two consistency bugs)

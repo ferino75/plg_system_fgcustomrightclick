@@ -98,11 +98,16 @@ final class Fgcustomrightclick extends CMSPlugin implements SubscriberInterface
             'protectBackgroundImages'  => (bool) $protectBackgroundImages,
         ];
 
-        // Both the popup and the custom menu render ARIA strings that were
-        // previously hard-coded in English on the frontend; load our own
-        // language file once here so Text::_() below is translated.
-        if ($mode === 1 || $mode === 3) {
+        // The popup, the custom menu, and the print-block message all
+        // render translated strings that were previously hard-coded in
+        // English on the frontend; load our own language file once here
+        // so Text::_() below is translated.
+        if ($mode === 1 || $mode === 3 || $disablePrint) {
             $this->loadLanguage();
+        }
+
+        if ($disablePrint) {
+            $options['printDisabledMessage'] = Text::_('PLG_SYSTEM_FGCUSTOMRIGHTCLICK_PRINT_DISABLED_MESSAGE');
         }
 
         if ($mode === 1) {
