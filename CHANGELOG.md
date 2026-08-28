@@ -1,5 +1,39 @@
 # Changelog - plg_system_fgcustomrightclick
 
+## 1.7.2 (2026-08-28)
+
+### Print/action conflict warning + clipboard fix on HTTP
+
+- **Documented the "Disable printing" + "Print the page" menu-action
+  interaction.** Both features work correctly together technically - the
+  menu item still opens the browser's print dialog, and the print CSS
+  still shows the "printing is disabled" message on the printed output -
+  but an admin combining both without realising it would get a "Print"
+  button that visibly does nothing useful, with no explanation why. Added
+  an explicit note to the action field's description rather than silently
+  dropping the menu item (which would have been its own kind of
+  confusing: a configured item quietly missing from the menu, with no
+  indication why).
+- **Fixed "Copy URL" and "Share" (clipboard fallback) failing completely
+  silently on plain HTTP sites.** `navigator.clipboard` requires a secure
+  context (HTTPS or localhost) and is simply `undefined` otherwise - the
+  previous code checked for it and did nothing at all if absent, so
+  clicking the menu item on an HTTP site appeared to do nothing, with no
+  error and no way to tell whether it worked.
+  - Added a `document.execCommand('copy')`-based fallback (deprecated but
+    still supported by every major browser, with no secure-context
+    requirement) for when the modern Clipboard API isn't available.
+  - Added a small toast/status message ("Copied to clipboard" /
+    "Could not copy to clipboard", both translated via `Text::_()`) shown
+    after every copy attempt, success or failure, so the action always
+    gives visible feedback instead of silently doing nothing either way.
+- Added `test_fg_crc_copy_feedback.js` (9 jsdom assertions): the modern
+  Clipboard API path still works and shows the success toast, the
+  no-Clipboard-API path attempts the fallback and always shows a result
+  toast (jsdom doesn't implement `execCommand` at all, so this exercises
+  and confirms the failure-feedback path specifically), and the English
+  fallback when a localized message is missing.
+
 ## 1.7.1 (2026-08-28)
 
 ### "Skip on interactive elements" was too narrow

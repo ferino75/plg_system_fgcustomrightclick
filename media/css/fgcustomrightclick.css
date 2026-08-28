@@ -241,3 +241,32 @@
 .crc-touch-callout-off-video video {
     -webkit-touch-callout: none;
 }
+
+/* ---- copy/share feedback toast ----
+   Confirms "Copy URL" / "Share" (clipboard fallback) actually did
+   something, since on a plain HTTP site the Clipboard API is unavailable
+   (secure-context only) and the execCommand('copy') fallback used there
+   gives no feedback of its own. */
+.crc-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    z-index: 2147483002;
+    background: rgba(20, 20, 20, 0.92);
+    color: #fff;
+    padding: 0.55rem 1rem;
+    border-radius: 6px;
+    font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    max-width: min(90vw, 360px);
+    text-align: center;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateX(-50%) translateY(8px);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.crc-toast.crc-toast-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}

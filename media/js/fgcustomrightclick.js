@@ -40,6 +40,80 @@
     const PREFIX = 'crc';
 
     /**
+     * Copies text to the clipboard, with a fallback for non-secure
+     * contexts. navigator.clipboard requires a secure context (HTTPS or
+     * localhost) - on a plain HTTP site it's simply undefined, so relying
+     * on it alone means "Copy URL"/"Share" silently do nothing there with
+     * no error and no feedback. document.execCommand('copy') is
+     * deprecated but still works in every major browser and has no
+     * secure-context requirement, so it's used as a fallback.
+     */
+    const copyTextLegacy = (text) => {
+        try {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.setAttribute('readonly', '');
+            textarea.style.position = 'fixed';
+            textarea.style.top = '0';
+            textarea.style.left = '0';
+            textarea.style.opacity = '0';
+            textarea.style.pointerEvents = 'none';
+            document.body.appendChild(textarea);
+            textarea.select();
+            textarea.setSelectionRange(0, textarea.value.length);
+            const ok = document.execCommand('copy');
+            textarea.remove();
+            return ok;
+        } catch (e) {
+            return false;
+        }
+    };
+
+    const copyText = (text) => {
+        if (navigator.clipboard?.writeText) {
+            return navigator.clipboard.writeText(text)
+                .then(() => true)
+                .catch(() => copyTextLegacy(text));
+        }
+        return Promise.resolve(copyTextLegacy(text));
+    };
+
+    // Small transient status message so "Copy URL"/"Share" give visible
+    // confirmation either way, instead of the click appearing to do
+    // nothing (which was the actual complaint on HTTP sites, where the
+    // Clipboard API is unavailable and the action previously failed
+    // silently with no feedback at all).
+    let toastEl = null;
+    let toastTimer = 0;
+
+    const showToast = (message) => {
+        if (!message) {
+            return;
+        }
+        if (!toastEl) {
+            toastEl = document.createElement('div');
+            toastEl.className = `${PREFIX}-toast`;
+            toastEl.setAttribute('role', 'status');
+            toastEl.setAttribute('aria-live', 'polite');
+            document.body.appendChild(toastEl);
+        }
+        toastEl.textContent = message;
+        toastEl.classList.add(`${PREFIX}-toast-visible`);
+        if (toastTimer) {
+            window.clearTimeout(toastTimer);
+        }
+        toastTimer = window.setTimeout(() => {
+            toastEl.classList.remove(`${PREFIX}-toast-visible`);
+        }, 2200);
+    };
+
+    const notifyCopyResult = (ok) => {
+        showToast(ok
+            ? (cfg.copiedMessage || 'Copied to clipboard')
+            : (cfg.copyFailedMessage || 'Could not copy to clipboard'));
+    };
+
+    /**
      * Whitelisted custom-menu actions. No admin-provided string is ever
      * executed as code - each entry here is a fixed, audited function.
      * Kept in sync with ALLOWED_ACTIONS in Fgcustomrightclick.php.
@@ -47,17 +121,15 @@
     const ACTIONS = {
         reload: () => window.location.reload(),
         copy_url: () => {
-            if (navigator.clipboard?.writeText) {
-                navigator.clipboard.writeText(window.location.href).catch(() => {});
-            }
+            copyText(window.location.href).then(notifyCopyResult);
         },
         print: () => window.print(),
         scroll_top: () => window.scrollTo({ top: 0, behavior: 'smooth' }),
         share: () => {
             if (navigator.share) {
                 navigator.share({ url: window.location.href, title: document.title }).catch(() => {});
-            } else if (navigator.clipboard?.writeText) {
-                navigator.clipboard.writeText(window.location.href).catch(() => {});
+            } else {
+                copyText(window.location.href).then(notifyCopyResult);
             }
         },
     };
