@@ -1,5 +1,30 @@
 # Changelog - plg_system_fgcustomrightclick
 
+## 1.6.5 (2026-08-28)
+
+### Bug fix - mode 3 ("Custom menu") with no usable items
+
+- **Fixed a dead-end: with the right-click mode set to "Custom menu" but
+  no usable menu items, visitors lost the context menu entirely** - not
+  the native one (blocked by `preventDefault()`), and not the custom one
+  (nothing to show, since `showMenu()` just logged a console warning and
+  returned). This could happen either because no items were ever
+  configured, or - more subtly - because every configured item got
+  filtered out at runtime by the security whitelist (e.g. all links used
+  a disallowed URL scheme), which an admin could trigger without any
+  visible warning in the plugin's own configuration screen.
+- Fixed by checking whether there is anything to show *before* calling
+  `preventDefault()`: with zero usable menu items, the handler now leaves
+  the event alone entirely and the visitor gets the normal browser
+  context menu instead of no menu at all. This covers both causes above
+  in one fix, including the "items were filtered out after saving" case
+  that admin-side "require at least one item" validation on its own would
+  not have caught.
+- The mode field's description now documents this fallback behaviour.
+- Added `test_fg_crc_empty_menu_fallback.js` (5 jsdom assertions):
+  no items configured, every item filtered out by the safety whitelist,
+  and the normal (non-empty) case is unaffected.
+
 ## 1.6.4 (2026-08-28)
 
 ### Bug fix - {url} placeholder in custom-menu link items

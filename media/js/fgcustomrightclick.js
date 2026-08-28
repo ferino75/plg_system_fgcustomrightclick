@@ -490,6 +490,18 @@
                 return;
             }
 
+            // Mode 3 with no usable menu items (never configured, or every
+            // item got filtered out by the link-scheme/action whitelist)
+            // must NOT call preventDefault() - doing so unconditionally
+            // would leave the visitor with no context menu at all: no
+            // native one (blocked) and no custom one (nothing to show).
+            // Falling back to the native menu here is strictly better than
+            // leaving right-click completely dead.
+            if (cfg.mode === 3 && !menuItems.length) {
+                console.warn?.('[fgcustomrightclick] mode=3 but no menu items configured - falling back to the native context menu');
+                return;
+            }
+
             e.preventDefault();
 
             if (cfg.mode === 1) {
