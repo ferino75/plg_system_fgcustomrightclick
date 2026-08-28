@@ -1,5 +1,51 @@
 # Changelog - plg_system_fgcustomrightclick
 
+## 1.9.0 (2026-08-28)
+
+### Touch/mobile support - long-press now reliably opens the popup/custom menu
+
+- **Added `touchstart`/`touchmove`/`touchend`-based long-press detection
+  (500ms, 10px movement tolerance) as a second trigger path alongside the
+  desktop `contextmenu` event**, both feeding into the same shared
+  decision logic (`handleContextTrigger()`, extracted from the previous
+  single `contextmenu` handler). Needed because relying on `contextmenu`
+  alone is unreliable on touch devices: iOS Safari largely does not fire
+  a `contextmenu` event on long-press at all (a long-standing WebKit
+  limitation, separate from `-webkit-touch-callout`, which only
+  suppresses the native "Save Image" sheet and does nothing to open the
+  plugin's own popup/menu); Android Chrome fires it more consistently,
+  but not every mobile browser does.
+- A quick tap, a scroll/swipe (movement past the 10px tolerance), or a
+  multi-touch gesture (pinch-to-zoom) all correctly cancel the timer and
+  never trigger the popup/menu - only a stationary single-finger touch
+  held for the full 500ms counts as a long-press.
+- Guards against double-handling: if a native `contextmenu` still fires
+  shortly after a long-press this code already handled (observed on some
+  Android browsers), it's suppressed rather than triggering the
+  popup/menu a second time.
+- All existing rules apply identically on the touch path: the plugin's
+  own UI is never mistaken for site content (see the v1.8.2 fix),
+  "Skip on interactive elements" is respected, "Only for images" mode
+  still only blocks rather than opening a menu, and mode 3 with no
+  usable menu items still falls back to letting the native behaviour
+  through instead of leaving touch input dead.
+- Note on `preventDefault()`: touch listeners are registered
+  `{ passive: true }` (required for scroll performance, and correct
+  since we only need to *detect* the gesture, not block scrolling
+  itself), and by the time the 500ms timer fires it is too late for a
+  delayed `preventDefault()` call to retroactively change the browser's
+  already-committed scroll/selection decision anyway. Suppressing the
+  native callout/selection on touch continues to be handled the way it
+  already was - synchronously via CSS (`-webkit-touch-callout`,
+  `user-select`) - this addition is purely about reliably showing our
+  *own* UI, not about additionally suppressing native touch behaviour.
+- Added `test_fg_crc_touch_longpress.js` (11 jsdom assertions): a held
+  long-press opens the menu, a quick tap does not, movement past/within
+  tolerance behaves correctly, multi-touch is ignored, the
+  double-handling guard against a follow-up native `contextmenu` works,
+  mode 2 and the plugin's-own-UI guard both still apply correctly on the
+  touch path.
+
 ## 1.8.2 (2026-08-28)
 
 ### Critical bug fix - right-click on the plugin's own menu leaked the native menu

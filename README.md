@@ -1,10 +1,10 @@
-<img src="assets/logo.png" width="96" height="96" alt="FG Custom Right Click logo">
-
 # FG Custom Right Click
+
+<img src="assets/logo.png" width="96" height="96" alt="FG Custom Right Click logo">
 
 [![Joomla](https://img.shields.io/badge/Joomla-6%2C%205%2C%204-1a6877?logo=joomla)](https://www.joomla.org/)
 [![License: GPL v2](https://img.shields.io/badge/License-GPLv2-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.8.2-ff6b4a)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.9.0-ff6b4a)](CHANGELOG.md)
 
 A native Joomla system plugin that disables printing, text selection/copy,
 image dragging, developer-tools keyboard shortcuts, and the browser's
@@ -43,6 +43,9 @@ Click for Joomla 3.X" extension.
   just HTTPS) and show a brief confirmation toast either way
 - Full keyboard accessibility: focus trap in the popup, roving-tabindex
   arrow-key navigation in the custom menu, focus returned on close
+- Touch-device long-press (500ms) opens the popup/custom menu the same
+  way a desktop right-click does - needed because iOS Safari largely
+  does not fire a `contextmenu` event on long-press at all
 - Follows the site template's own light/dark theme (`data-bs-theme` /
   `data-color-scheme`) rather than the visitor's OS preference, respects
   `prefers-reduced-motion`, and uses logical CSS properties for RTL

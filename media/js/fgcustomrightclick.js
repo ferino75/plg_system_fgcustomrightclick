@@ -627,62 +627,170 @@
     const OWN_UI_SELECTOR = `.${PREFIX}-overlay, .${PREFIX}-menu, .${PREFIX}-toast`;
     const isOwnUiTarget = (target) => !!(target?.closest && target.closest(OWN_UI_SELECTOR));
 
+    // Set true for the remainder of a touch gesture once our own
+    // long-press timer has already handled it, so a native `contextmenu`
+    // that some mobile browsers (notably Android Chrome) still fire
+    // shortly afterwards doesn't try to handle the exact same gesture a
+    // second time (which could reposition/flicker an already-open menu).
+    let longPressHandledThisGesture = false;
+
+    /**
+     * The actual "should this right-click/long-press be blocked, and
+     * should our popup/menu open" decision - shared between the desktop
+     * `contextmenu` listener and the touch long-press detector below, so
+     * both paths apply the exact same rules (own-UI guard, image-only
+     * mode, interactive-element exemption, empty-menu native fallback).
+     *
+     * @param {Element} target   The element the gesture landed on.
+     * @param {number}  clientX  Viewport X to anchor the menu at.
+     * @param {number}  clientY  Viewport Y to anchor the menu at.
+     * @param {Function} preventDefault  Called when the native menu/
+     *   callout for this gesture should be suppressed. Passed in rather
+     *   than assumed, since a touch long-press has no single `Event` to
+     *   call preventDefault() on by the time the timer fires.
+     */
+    const handleContextTrigger = (target, clientX, clientY, preventDefault) => {
+        if (isOwnUiTarget(target)) {
+            preventDefault();
+            return;
+        }
+
+        if (cfg.mode === 2) {
+            if (isProtectedMediaTarget(target)) {
+                preventDefault();
+            }
+            return;
+        }
+
+        // Interactive elements (links, forms, buttons, editors) keep
+        // their normal right-click menu by default - see
+        // isInteractiveExempt(). Set "Skip on interactive elements" to
+        // No in the plugin options to block truly everywhere instead.
+        if (isInteractiveExempt(target)) {
+            return;
+        }
+
+        // Mode 3 with no usable menu items (never configured, or every
+        // item got filtered out by the link-scheme/action whitelist)
+        // must NOT suppress the native menu - doing so unconditionally
+        // would leave the visitor with no context menu at all: no
+        // native one (blocked) and no custom one (nothing to show).
+        // Falling back to the native menu here is strictly better than
+        // leaving right-click/long-press completely dead.
+        if (cfg.mode === 3 && !menuItems.length) {
+            console.warn?.('[fgcustomrightclick] mode=3 but no menu items configured - falling back to the native context menu');
+            return;
+        }
+
+        preventDefault();
+
+        if (cfg.mode === 1) {
+            showPopup();
+        } else if (cfg.mode === 3) {
+            closeMenu();
+            showMenu(clientX, clientY);
+        }
+    };
+
     // Right click handling
     if (cfg.mode > 0) {
         document.addEventListener('contextmenu', (e) => {
-            if (isOwnUiTarget(e.target)) {
+            // A touch long-press already handled this exact gesture (see
+            // below) - don't process the native contextmenu that some
+            // mobile browsers still fire afterwards as a second, separate
+            // trigger.
+            if (longPressHandledThisGesture) {
+                longPressHandledThisGesture = false;
                 e.preventDefault();
                 return;
             }
 
-            if (cfg.mode === 2) {
-                if (isProtectedMediaTarget(e.target)) {
-                    e.preventDefault();
-                }
-                return;
+            // Keyboard-triggered contextmenu (Shift+F10 / Menu key) can
+            // report clientX/clientY as 0,0 in some browsers. Anchor the
+            // menu to the focused/target element instead of the corner.
+            let x = e.clientX;
+            let y = e.clientY;
+            if (!x && !y && e.target?.getBoundingClientRect) {
+                const rect = e.target.getBoundingClientRect();
+                x = rect.left;
+                y = rect.bottom;
             }
 
-            // Interactive elements (links, forms, buttons, editors) keep
-            // their normal right-click menu by default - see
-            // isInteractiveExempt(). Set "Skip on interactive elements" to
-            // No in the plugin options to block truly everywhere instead.
-            if (isInteractiveExempt(e.target)) {
-                return;
-            }
-
-            // Mode 3 with no usable menu items (never configured, or every
-            // item got filtered out by the link-scheme/action whitelist)
-            // must NOT call preventDefault() - doing so unconditionally
-            // would leave the visitor with no context menu at all: no
-            // native one (blocked) and no custom one (nothing to show).
-            // Falling back to the native menu here is strictly better than
-            // leaving right-click completely dead.
-            if (cfg.mode === 3 && !menuItems.length) {
-                console.warn?.('[fgcustomrightclick] mode=3 but no menu items configured - falling back to the native context menu');
-                return;
-            }
-
-            e.preventDefault();
-
-            if (cfg.mode === 1) {
-                showPopup();
-            } else if (cfg.mode === 3) {
-                closeMenu();
-
-                // Keyboard-triggered contextmenu (Shift+F10 / Menu key) can
-                // report clientX/clientY as 0,0 in some browsers. Anchor the
-                // menu to the focused/target element instead of the corner.
-                let x = e.clientX;
-                let y = e.clientY;
-                if (!x && !y && e.target?.getBoundingClientRect) {
-                    const rect = e.target.getBoundingClientRect();
-                    x = rect.left;
-                    y = rect.bottom;
-                }
-
-                showMenu(x, y);
-            }
+            handleContextTrigger(e.target, x, y, () => e.preventDefault());
         }, true);
+    }
+
+    // Long-press detection for touch devices. Desktop's `contextmenu`
+    // event is not a reliable substitute here: iOS Safari largely does
+    // not fire it at all on a long-press (a long-standing WebKit
+    // limitation, distinct from -webkit-touch-callout above, which only
+    // suppresses the native "Save Image" sheet and does nothing to open
+    // OUR menu); Android Chrome fires it more consistently but not every
+    // mobile browser does. This bridges a touch long-press to the exact
+    // same handleContextTrigger() logic used for a desktop right-click.
+    if (cfg.mode > 0) {
+        const LONG_PRESS_MS = 500;
+        const LONG_PRESS_MOVE_TOLERANCE_PX = 10;
+
+        let longPressTimer = 0;
+        let longPressStartX = 0;
+        let longPressStartY = 0;
+        let longPressTarget = null;
+
+        const clearLongPressTimer = () => {
+            if (longPressTimer) {
+                window.clearTimeout(longPressTimer);
+                longPressTimer = 0;
+            }
+            longPressTarget = null;
+        };
+
+        document.addEventListener('touchstart', (e) => {
+            // Ignore multi-touch gestures (pinch-to-zoom, two-finger
+            // scroll, ...) - only a single, stationary touch counts as a
+            // long-press.
+            if (e.touches.length !== 1) {
+                clearLongPressTimer();
+                return;
+            }
+
+            const touch = e.touches[0];
+            longPressStartX = touch.clientX;
+            longPressStartY = touch.clientY;
+            longPressTarget = e.target;
+
+            clearLongPressTimer();
+            longPressTimer = window.setTimeout(() => {
+                longPressTimer = 0;
+                longPressHandledThisGesture = true;
+                // No-op preventDefault: by the time an async setTimeout
+                // callback runs, the browser has already committed to its
+                // touchstart-time scrolling/selection decision - calling
+                // preventDefault() here cannot retroactively change that.
+                // Suppressing the native callout/selection is instead
+                // handled synchronously via CSS (-webkit-touch-callout,
+                // user-select) elsewhere in this file/stylesheet.
+                handleContextTrigger(longPressTarget, longPressStartX, longPressStartY, () => {});
+            }, LONG_PRESS_MS);
+        }, { passive: true });
+
+        document.addEventListener('touchmove', (e) => {
+            if (!longPressTimer) {
+                return;
+            }
+            const touch = e.touches[0];
+            if (!touch) {
+                return;
+            }
+            const dx = Math.abs(touch.clientX - longPressStartX);
+            const dy = Math.abs(touch.clientY - longPressStartY);
+            if (dx > LONG_PRESS_MOVE_TOLERANCE_PX || dy > LONG_PRESS_MOVE_TOLERANCE_PX) {
+                clearLongPressTimer();
+            }
+        }, { passive: true });
+
+        document.addEventListener('touchend', clearLongPressTimer, { passive: true });
+        document.addEventListener('touchcancel', clearLongPressTimer, { passive: true });
     }
 
     // Close menu / popup on outside interaction
