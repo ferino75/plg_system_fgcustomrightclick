@@ -1,5 +1,43 @@
 # Changelog - plg_system_fgcustomrightclick
 
+## 1.6.0 (2026-08-28)
+
+### Scope fix (behaviour change) - "Only for images" mode
+
+- **"Only for images" now means exactly `<img>`/`<picture>`.** It
+  previously also matched `svg`, `canvas`, and `video`, plus any element
+  with a CSS `background-image` found by walking up to 4 ancestor
+  elements. That caused two kinds of surprise: (1) `canvas` was included
+  even though no browser offers "Save image as" on a canvas via
+  right-click in the first place, so blocking it protected nothing;
+  inline `<svg>` icons inside otherwise-interactive buttons were also
+  frequently caught, and (2) the ancestor walk meant right-clicking
+  *anywhere* inside a card, banner, or button that merely had a
+  background image further up the DOM - including unrelated nested text,
+  links, or other buttons - could get blocked.
+- `svg` and `canvas` are dropped from image detection entirely (not
+  reintroduced even as an opt-in), for the reasons above.
+- Added two new options, both **off by default**, only shown when the
+  right-click mode is "Only for images":
+  - **"Also protect video"** - extends the protection (and, if
+    "Disable image dragging" is on, drag prevention too) to `<video>`
+    elements.
+  - **"Also protect CSS background images"** - extends the protection to
+    elements whose *own* computed style has a background image. Unlike
+    the old behaviour, only the exact element that was right-clicked is
+    checked - never its ancestors - so a button or link nested inside a
+    background-image banner/card is never affected, only the
+    banner/card element itself when clicked directly.
+- `disableImageDrag` follows the same narrowed scope: it always covers
+  `<img>`/`<picture>`, and now also covers `<video>` when "Also protect
+  video" is enabled. Background-image elements are not natively
+  draggable by browsers in the first place, so no change was needed
+  there.
+- Added `test_fg_crc_image_scope.js` (13 jsdom assertions) covering the
+  narrowed default scope, both new opt-in toggles independently, that a
+  background-image container's own nested button is no longer
+  collaterally blocked, and that drag-prevention follows the same rules.
+
 ## 1.5.0 (2026-08-28)
 
 ### UX/usability fix (behaviour change)

@@ -5,7 +5,7 @@
 	<creationDate>2026-08-27</creationDate>
 	<copyright>(C) 2026 Fero. All rights reserved.</copyright>
 	<license>GNU General Public License version 2 or later</license>
-	<version>1.5.0</version>
+	<version>1.6.0</version>
 	<description>PLG_SYSTEM_FGCUSTOMRIGHTCLICK_XML_DESCRIPTION</description>
 	<namespace path="src">FG\Plugin\System\Fgcustomrightclick</namespace>
 
@@ -120,6 +120,34 @@
 					<option value="1">PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_MODE_YES</option>
 					<option value="2">PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_MODE_IMAGES</option>
 					<option value="3">PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_MODE_MENU</option>
+				</field>
+
+				<field
+					name="protect_video"
+					type="radio"
+					layout="joomla.form.field.radio.switcher"
+					label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_PROTECT_VIDEO_LABEL"
+					description="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_PROTECT_VIDEO_DESC"
+					default="0"
+					filter="integer"
+					showon="rightclick_mode:2"
+				>
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>
+
+				<field
+					name="protect_background_images"
+					type="radio"
+					layout="joomla.form.field.radio.switcher"
+					label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_PROTECT_BG_LABEL"
+					description="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_PROTECT_BG_DESC"
+					default="0"
+					filter="integer"
+					showon="rightclick_mode:2"
+				>
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
 				</field>
 
 			</fieldset>

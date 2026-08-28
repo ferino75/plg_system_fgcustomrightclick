@@ -137,24 +137,41 @@
      *  Helpers
      * ------------------------------------------------------------------ */
 
-    const isImageTarget = (target) => {
-        if (!target?.closest) {
+    // "Only for images" means exactly that: <img>/<picture>. canvas has no
+    // native "Save image as" on right-click in any browser to begin with
+    // (blocking it protects nothing), and inline <svg> is very often an
+    // icon/logo inside an otherwise-interactive button - including it here
+    // produced surprising false positives. video and CSS background images
+    // are separate, opt-in concerns (protectVideo / protectBackgroundImages
+    // below) since they're a different kind of content with different
+    // false-positive risk.
+    const isImageTarget = (target) => !!(target?.closest && target.closest('img, picture'));
+
+    const isVideoTarget = (target) => !!(target?.closest && target.closest('video'));
+
+    // Deliberately checks the clicked/dragged element itself only - NOT its
+    // ancestors. Walking up the tree (as an earlier version did) meant
+    // right-clicking anywhere inside a card, banner, or button that merely
+    // *had* a background image further up the DOM would block the native
+    // menu on unrelated nested content (text, links, other buttons) inside
+    // it. Checking only the exact element the event fired on means this
+    // only fires when the background image is actually on the thing you
+    // clicked.
+    const hasOwnBackgroundImage = (target) => {
+        if (!target || target.nodeType !== 1) {
             return false;
         }
-        if (target.closest('img, picture, svg, canvas, video')) {
-            return true;
-        }
-        // Elements with CSS background image
-        let el = target;
-        for (let i = 0; el && i < 4; i++) {
-            const bg = window.getComputedStyle(el).backgroundImage;
-            if (bg && bg !== 'none' && bg.includes('url(')) {
-                return true;
-            }
-            el = el.parentElement;
-        }
-        return false;
+        const bg = window.getComputedStyle(target).backgroundImage;
+        return !!(bg && bg !== 'none' && bg.includes('url('));
     };
+
+    // Used by mode 2 ("Only for images"): image, plus whichever opt-in
+    // extras (video / background images) are enabled in the plugin options.
+    const isProtectedMediaTarget = (target) => (
+        isImageTarget(target)
+        || (cfg.protectVideo && isVideoTarget(target))
+        || (cfg.protectBackgroundImages && hasOwnBackgroundImage(target))
+    );
 
     const isEditable = (target) => {
         if (!target) {
@@ -438,7 +455,7 @@
     if (cfg.mode > 0) {
         document.addEventListener('contextmenu', (e) => {
             if (cfg.mode === 2) {
-                if (isImageTarget(e.target)) {
+                if (isProtectedMediaTarget(e.target)) {
                     e.preventDefault();
                 }
                 return;
@@ -561,10 +578,12 @@
         }, true);
     }
 
-    // Disable image dragging
+    // Disable image dragging (and video, if protectVideo is enabled -
+    // background-image elements are not natively draggable in browsers,
+    // so there is nothing to prevent there)
     if (cfg.disableImageDrag) {
         document.addEventListener('dragstart', (e) => {
-            if (isImageTarget(e.target)) {
+            if (isImageTarget(e.target) || (cfg.protectVideo && isVideoTarget(e.target))) {
                 e.preventDefault();
             }
         }, true);
