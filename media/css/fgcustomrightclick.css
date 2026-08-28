@@ -3,19 +3,23 @@
  * (C) 2026 Fero - GPL v2+
  */
 
-/* ---- text selection off ---- */
+/* ---- text selection off ----
+   !important on both the blocking rule and the exemptions below: without
+   it, a template's own CSS with equal specificity (e.g. "body input {...}")
+   loaded after this stylesheet could silently override either side,
+   depending on load order the plugin has no control over. */
 .crc-noselect body,
 .crc-noselect body * {
-    -webkit-user-select: none;
-    user-select: none;
+    -webkit-user-select: none !important;
+    user-select: none !important;
 }
 .crc-noselect input,
 .crc-noselect textarea,
 .crc-noselect select,
 .crc-noselect [contenteditable="true"],
 .crc-noselect [contenteditable="true"] * {
-    -webkit-user-select: text;
-    user-select: text;
+    -webkit-user-select: text !important;
+    user-select: text !important;
 }
 
 /* "Skip on interactive elements" (protectInteractive, default on): also
@@ -24,8 +28,8 @@
 .crc-noselect-interactive-exempt a *,
 .crc-noselect-interactive-exempt button,
 .crc-noselect-interactive-exempt button * {
-    -webkit-user-select: text;
-    user-select: text;
+    -webkit-user-select: text !important;
+    user-select: text !important;
 }
 
 /* ---- popup (mode 1) ---- */

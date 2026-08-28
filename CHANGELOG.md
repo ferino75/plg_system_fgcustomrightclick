@@ -1,5 +1,26 @@
 # Changelog - plg_system_fgcustomrightclick
 
+## 1.6.1 (2026-08-28)
+
+### CSS robustness fix
+
+- Added `!important` to the `disableSelect` CSS rules (both the blocking
+  rule and the `input`/`textarea`/`select`/`[contenteditable]`/link/button
+  exemptions). Without it, the exemption relied entirely on the two rules
+  having equal CSS specificity (`.crc-noselect body *` and e.g.
+  `.crc-noselect input` are both `(0,1,1)`) and this plugin's stylesheet
+  happening to be the *last* one loaded with that specificity for the
+  affected elements. A template's own CSS setting `user-select` on form
+  fields with the same or higher specificity, loaded after this
+  stylesheet in the page's `<head>`, could silently win and leave inputs
+  unselectable even though the JS-level copy/cut/select event handling
+  (`isProtectionExempt()`) already correctly allowed it. `!important` on
+  both sides removes that dependency on load order.
+- JS-level behaviour is unchanged - `isProtectionExempt()` already
+  correctly exempted these elements from the `copy`/`cut`/`selectstart`
+  event handlers and the Ctrl+C/X/A shortcut block; this fix closes the
+  matching gap on the purely visual/native-selection side.
+
 ## 1.6.0 (2026-08-28)
 
 ### Scope fix (behaviour change) - "Only for images" mode
