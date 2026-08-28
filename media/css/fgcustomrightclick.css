@@ -17,17 +17,30 @@
 .crc-noselect textarea,
 .crc-noselect select,
 .crc-noselect [contenteditable="true"],
-.crc-noselect [contenteditable="true"] * {
+.crc-noselect [contenteditable="true"] *,
+.crc-noselect [contenteditable=""],
+.crc-noselect [contenteditable=""] * {
     -webkit-user-select: text !important;
     user-select: text !important;
 }
 
 /* "Skip on interactive elements" (protectInteractive, default on): also
-   allow selecting text inside links and buttons. */
+   allow selecting text inside links, buttons, and the other elements the
+   JS-side exemption covers that actually contain selectable text (iframe/
+   canvas/audio/video are deliberately excluded here - they don't have
+   text content in the relevant sense). */
 .crc-noselect-interactive-exempt a,
 .crc-noselect-interactive-exempt a *,
 .crc-noselect-interactive-exempt button,
-.crc-noselect-interactive-exempt button * {
+.crc-noselect-interactive-exempt button *,
+.crc-noselect-interactive-exempt summary,
+.crc-noselect-interactive-exempt summary *,
+.crc-noselect-interactive-exempt details,
+.crc-noselect-interactive-exempt details *,
+.crc-noselect-interactive-exempt label,
+.crc-noselect-interactive-exempt label *,
+.crc-noselect-interactive-exempt [role="button" i],
+.crc-noselect-interactive-exempt [role="button" i] * {
     -webkit-user-select: text !important;
     user-select: text !important;
 }

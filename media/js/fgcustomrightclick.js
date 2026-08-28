@@ -183,21 +183,52 @@
 
     // Elements that keep their normal browser behaviour (right-click menu,
     // text selection/copy) even when protections are active, so the
-    // protections don't break form usability, editors, or the very common
-    // "right click a link -> open in new tab" gesture. Gated by the
-    // protectInteractive config flag (default on).
-    const INTERACTIVE_EXEMPT_SELECTOR = 'input, textarea, select, button, a, [contenteditable="true"], [contenteditable=""]';
+    // protections don't break form usability, editors, embedded
+    // third-party widgets, or the very common "right click a link -> open
+    // in new tab" gesture. Gated by the protectInteractive config flag
+    // (default on).
+    //
+    // Includes: form controls, links/buttons, ARIA button-role elements
+    // (common in component libraries that don't use native <button>),
+    // <summary>/<details> (natively interactive disclosure widgets),
+    // <label>, <iframe> (embedded YouTube/Maps/cookie-consent widgets -
+    // note this only matters for a right-click landing on the iframe's
+    // own border/padding area in the PARENT document; a click inside the
+    // embed's own content never reaches this listener at all, since
+    // contextmenu events do not cross a same-origin OR cross-origin frame
+    // boundary), <canvas> (canvas-rendered map libraries like Leaflet/
+    // OpenLayers/MapLibre GL, which may use right-click-drag for panning/
+    // rotation), and <audio> (native player controls).
+    //
+    // Known limitation: this is a plain CSS selector, so it cannot see
+    // inside a Shadow DOM. A right-click inside a web component's shadow
+    // tree is retargeted to the custom element host by the browser before
+    // this code ever sees it, so an arbitrary custom element is only
+    // exempted if the host itself matches one of these selectors (e.g. it
+    // sets role="button" on itself) - there is no general way to detect
+    // "this custom element wraps something interactive" from outside it.
+    const INTERACTIVE_EXEMPT_SELECTOR = 'input, textarea, select, button, a, iframe, canvas, audio, '
+        + 'summary, details, label, [role="button" i], '
+        + '[contenteditable="true"], [contenteditable=""]';
 
     const isInteractiveExempt = (target) => {
         if (!cfg.protectInteractive || !target?.closest) {
             return false;
         }
-        return !!target.closest(INTERACTIVE_EXEMPT_SELECTOR);
+        if (target.closest(INTERACTIVE_EXEMPT_SELECTOR)) {
+            return true;
+        }
+        // <video> is exempt by the same reasoning as the rest of this
+        // list (native player controls shouldn't break) UNLESS the admin
+        // has explicitly opted in to protecting video via "Also protect
+        // video" (protectVideo) - that's a deliberate signal they want
+        // video treated as protected content, not as a UI control.
+        return !cfg.protectVideo && !!target.closest('video');
     };
 
     // isEditable() is always exempt (form fields/editors must stay usable
     // regardless of the toggle); isInteractiveExempt() additionally covers
-    // buttons and links, only when protectInteractive is enabled.
+    // the elements above, only when protectInteractive is enabled.
     const isProtectionExempt = (target) => isEditable(target) || isInteractiveExempt(target);
 
     /* ------------------------------------------------------------------ *

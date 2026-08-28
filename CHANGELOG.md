@@ -1,5 +1,52 @@
 # Changelog - plg_system_fgcustomrightclick
 
+## 1.7.1 (2026-08-28)
+
+### "Skip on interactive elements" was too narrow
+
+- **Expanded the interactive-elements exemption** (`protectInteractive`,
+  default on) beyond `input, textarea, select, button, a,
+  [contenteditable]`. It now also covers: `iframe` (embedded YouTube/Maps/
+  cookie-consent widgets - though a right-click *inside* such an embed's
+  own content was never actually intercepted in the first place, since
+  contextmenu events never cross a frame boundary, same-origin or not;
+  this specifically fixes a right-click landing on the iframe's own
+  border/padding area in the parent document), `canvas` (canvas-rendered
+  map libraries such as Leaflet, OpenLayers, and MapLibre GL, some of
+  which use right-click-drag for panning/rotation), `audio` (native
+  player controls), `summary`/`details` (natively interactive disclosure
+  widgets), `label`, and `[role="button" i]` (common in component
+  libraries that style a `div`/`span` as a button rather than using a
+  native `<button>`; matched case-insensitively).
+- **`video` is exempt by the same reasoning, but only while "Also protect
+  video" is off.** If that option is explicitly enabled, video keeps
+  being treated as protected content (blocked), matching the admin's
+  clear intent - it does not silently become exempt again just because
+  `protectInteractive` is on.
+- **Fixed a related CSS gap**: the JS-side exemption already recognised
+  both `[contenteditable="true"]` and `[contenteditable=""]` (per the
+  HTML spec, an empty value means the same "true" state), but the CSS
+  rule that keeps text selectable inside those elements only listed
+  `[contenteditable="true"]`. `[contenteditable=""]` elements could
+  therefore still have visually-blocked text selection even though the
+  copy/right-click JS logic already correctly allowed them - fixed by
+  adding the missing selector.
+- Known, documented limitation: this is a plain CSS selector, so it
+  cannot see inside a web component's Shadow DOM. A right-click event
+  originating inside a custom element's shadow tree is retargeted by the
+  browser to the custom element host before this code ever runs, so an
+  arbitrary custom element (e.g. `<my-map-widget>`) is only exempted if
+  the host element itself matches one of the selectors above (most
+  commonly by exposing `role="button"`) - there is no general way to
+  detect "this custom element wraps something interactive" from outside
+  it. This is now documented in the field description and in the code
+  comments rather than silently unhandled.
+- Added `test_fg_crc_interactive_exempt_expanded.js` (15 jsdom
+  assertions): every newly-added element type, the conditional video
+  behaviour in both directions, `protectInteractive=false` still disabling
+  all of it, and that the copy/selection-blocking path picks up the same
+  expanded list automatically (since it's built on the same helper).
+
 ## 1.7.0 (2026-08-28) - CRITICAL HOTFIX
 
 **If you are running 1.6.6 or 1.6.7, upgrade immediately.** Both versions
