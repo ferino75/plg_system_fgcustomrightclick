@@ -145,6 +145,36 @@ final class Fgcustomrightclick extends CMSPlugin implements SubscriberInterface
     }
 
     /**
+     * Whitelist of URL schemes a 'link' menu item may use. Kept in sync
+     * with ALLOWED_LINK_SCHEMES in fgcustomrightclick.js.
+     */
+    private const ALLOWED_LINK_SCHEMES = ['http', 'https', 'mailto', 'tel'];
+
+    /**
+     * True if $value is safe to assign to window.location.href / pass to
+     * window.open() on the frontend: either a scheme-less value (relative
+     * path, #anchor, ?query - always safe) or an explicit scheme from the
+     * whitelist above. Rejects javascript:, data:, vbscript:, and any
+     * other scheme.
+     *
+     * Control characters and leading whitespace are stripped before the
+     * scheme check, since browsers ignore them when parsing a URL scheme
+     * and a naive check without this step is bypassable with e.g. a tab
+     * character inside "java\tscript:".
+     */
+    private function isSafeLinkValue(string $value): bool
+    {
+        $normalised = preg_replace('/[\x00-\x1F\x7F]/', '', $value);
+        $normalised = ltrim((string) $normalised);
+
+        if (preg_match('/^([a-zA-Z][a-zA-Z0-9+.\-]*):/', $normalised, $matches)) {
+            return \in_array(strtolower($matches[1]), self::ALLOWED_LINK_SCHEMES, true);
+        }
+
+        return true;
+    }
+
+    /**
      * Whitelist of custom-menu actions the frontend script is allowed to run.
      * Kept in sync with the ACTIONS map in fgcustomrightclick.js.
      */
@@ -199,7 +229,7 @@ final class Fgcustomrightclick extends CMSPlugin implements SubscriberInterface
             // 'link' (default/fallback for legacy rows)
             $value = trim((string) ($row['value'] ?? ''));
 
-            if ($value === '') {
+            if ($value === '' || !$this->isSafeLinkValue($value)) {
                 continue;
             }
 

@@ -62,6 +62,25 @@
         },
     };
 
+    /**
+     * Whitelist of URL schemes a 'link' menu item may use. Kept in sync
+     * with ALLOWED_LINK_SCHEMES in Fgcustomrightclick.php. This is the
+     * same check PHP already applies when it builds cfg.menuItems - it is
+     * repeated here as defense-in-depth (e.g. against a future dev error
+     * that bypasses the PHP-side filter, or hand-edited script options).
+     */
+    const ALLOWED_LINK_SCHEMES = new Set(['http:', 'https:', 'mailto:', 'tel:']);
+    const LINK_SCHEME_RE = /^[a-z][a-z0-9+.-]*:/i;
+
+    const isSafeLinkValue = (value) => {
+        // Strip control characters and leading whitespace - browsers
+        // ignore these when parsing a URL scheme, so a naive check
+        // without this step is bypassable with e.g. "java\tscript:".
+        const normalised = String(value).replace(/[\x00-\x1F\x7F]/g, '').replace(/^\s+/, '');
+        const match = normalised.match(LINK_SCHEME_RE);
+        return !match || ALLOWED_LINK_SCHEMES.has(match[0].toLowerCase());
+    };
+
     // menuItems may arrive as an array or (after JSON round-trips) an object
     let menuItems = [];
     if (cfg.menuItems) {
@@ -71,7 +90,7 @@
         menuItems = menuItems.filter((it) => it && (
             it.type === 'separator'
             || (it.type === 'action' && it.label && ACTIONS[it.action])
-            || (it.type !== 'action' && it.label && it.value)
+            || (it.type !== 'action' && it.label && it.value && isSafeLinkValue(it.value))
         ));
     }
 
@@ -295,7 +314,12 @@
             ACTIONS[item.action]?.();
             return;
         }
-        // 'link'
+        // 'link' - re-checked here (not just at menu-build time) in case
+        // this item ever reaches this point through any other path.
+        if (!isSafeLinkValue(item.value)) {
+            console.warn?.('[fgcustomrightclick] blocked link item with an unsafe URL scheme');
+            return;
+        }
         const url = item.value.split('{url}').join(encodeURIComponent(window.location.href));
         if (item.newtab) {
             window.open(url, '_blank', 'noopener');

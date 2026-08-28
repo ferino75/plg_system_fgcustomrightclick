@@ -1,5 +1,34 @@
 # Changelog - plg_system_fgcustomrightclick
 
+## 1.4.2 (2026-08-28)
+
+### Security fix
+
+- **Corrects an inconsistency left by the 1.4.0 security fix.** Removing
+  the `js` menu-item type closed the direct `eval`/`new Function` path,
+  but `link` item values were never scheme-validated. Assigning
+  `window.location.href` to a `javascript:` URL executes it exactly like
+  `eval` would - so an admin-authored (or a compromised-admin-authored)
+  "link" pointing at `javascript:...` was an equivalent code-execution
+  path that the earlier fix did not close.
+- Added a strict scheme whitelist for `link` item values, enforced in
+  **two places** (PHP at menu-build time, JS again right before
+  navigation as defense-in-depth): schemeless values (relative paths,
+  `#anchors`, `?query` strings) are always allowed; an explicit scheme
+  must be one of `http:`, `https:`, `mailto:`, `tel:`. Everything else -
+  `javascript:`, `data:`, `vbscript:`, `file:`, and any other scheme - is
+  rejected. Items with a rejected URL are dropped from the menu entirely,
+  the same way invalid `action` items already were.
+- The scheme check strips ASCII control characters and leading whitespace
+  before matching, since browsers ignore these when parsing a URL scheme
+  and a naive check without this step is bypassable with tricks like
+  `"java\tscript:"` or a leading NUL byte.
+- Added `test_fg_crc_link_scheme.php` (16 PHP-side assertions via
+  reflection, including the control-character/whitespace bypass attempts)
+  and extended the jsdom suite with `test_fg_crc_link_scheme.js` (9
+  assertions) confirming unsafe-scheme items never render and safe ones
+  are unaffected.
+
 ## 1.4.1 (2026-08-28)
 
 ### Hardening
