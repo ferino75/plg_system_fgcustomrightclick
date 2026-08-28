@@ -3,7 +3,7 @@
 	<update>
 		<name>FG Custom Right Click</name>
 		<description>Disable printing, text selection, image dragging, developer-tools shortcuts and the browser right-click menu on the frontend, with an optional popup or fully custom ARIA-accessible context menu.</description>
-		<element>plg_system_fgcustomrightclick</element>
+		<element>fgcustomrightclick</element>
 		<type>plugin</type>
 		<folder>system</folder>
 		<client>site</client>
