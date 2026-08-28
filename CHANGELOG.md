@@ -1,5 +1,33 @@
 # Changelog - plg_system_fgcustomrightclick
 
+## 1.6.3 (2026-08-28)
+
+### Honesty & UX fix - developer-tools deterrent
+
+- **Renamed and re-explained the "Block developer tools keys" option**
+  (now "Discourage developer-tools shortcuts") to stop implying it's a
+  security measure. It never protected source code or page content - it
+  only removes a handful of keyboard shortcuts. The description now says
+  so explicitly and lists what it does *not* stop: the browser's own
+  menu, extensions, external tools, disabling JavaScript, cached copies,
+  a plain HTTP client, or a screenshot/OCR. The underlying setting key
+  (`block_devtools`) is unchanged, so existing installs keep whatever
+  they had configured across the upgrade - only the label and description
+  text changed.
+- **Removed `stopImmediatePropagation()` from both the devtools-shortcut
+  handler and the Ctrl/Cmd+P print-blocking handler** (same issue, same
+  fix, applied consistently to both). `preventDefault()` alone is
+  sufficient to stop the browser's own devtools/print action;
+  `stopImmediatePropagation()` additionally prevented *any other*
+  listener on the page - a third-party widget, another script - from ever
+  seeing that keydown at all, which is a much bigger side effect than
+  this feature's modest goal justifies.
+- Added `test_fg_crc_devtools_propagation.js` (5 jsdom assertions):
+  confirms no `.stopImmediatePropagation(` call remains anywhere in the
+  shipped script, that an unrelated listener bound to the exact same key
+  combo (e.g. Ctrl+Shift+C) now still receives the event, and that F12/
+  Ctrl+U/Ctrl+P are still blocked as before with no functional regression.
+
 ## 1.6.2 (2026-08-28)
 
 ### Accessibility & localization fix

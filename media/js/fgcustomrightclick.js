@@ -598,7 +598,13 @@
         }, true);
     }
 
-    // Block developer tools keyboard shortcuts
+    // Discourage developer-tools keyboard shortcuts. NOTE: this is not a
+    // security measure (see the admin field description) - preventDefault()
+    // alone is enough to stop the browser's own devtools/view-source
+    // action. Deliberately NOT calling stopImmediatePropagation() here:
+    // doing so would also block any other, unrelated listener on the page
+    // (a widget, a third-party script) from ever seeing the same keydown,
+    // which is a bigger side effect than this feature's modest goal justifies.
     if (cfg.blockDevtools) {
         document.addEventListener('keydown', (e) => {
             const code = e.code || '';
@@ -616,7 +622,6 @@
 
             if (block) {
                 e.preventDefault();
-                e.stopImmediatePropagation();
             }
         }, true);
     }
@@ -628,11 +633,13 @@
         style.textContent = '@media print { body > * { display: none !important; } body::before { content: "Printing is disabled on this website."; display: block; padding: 2rem; font: 16px/1.5 sans-serif; } }';
         document.head.appendChild(style);
 
-        // Block Ctrl/Cmd+P
+        // Block Ctrl/Cmd+P. preventDefault() alone stops the browser's own
+        // print dialog; not calling stopImmediatePropagation() here for the
+        // same reason as the devtools handler above - it shouldn't also
+        // block unrelated page functionality bound to the same combo.
         document.addEventListener('keydown', (e) => {
             if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
                 e.preventDefault();
-                e.stopImmediatePropagation();
             }
         }, true);
     }
