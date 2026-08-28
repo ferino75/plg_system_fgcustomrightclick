@@ -2,7 +2,7 @@
 
 [![Joomla](https://img.shields.io/badge/Joomla-6%2C%205%2C%204-1a6877?logo=joomla)](https://www.joomla.org/)
 [![License: GPL v2](https://img.shields.io/badge/License-GPLv2-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.8.0-ff6b4a)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.8.1-ff6b4a)](CHANGELOG.md)
 
 A native Joomla system plugin that disables printing, text selection/copy,
 image dragging, developer-tools keyboard shortcuts, and the browser's
@@ -62,6 +62,13 @@ Joomla 4, 5, or 6.
 ## License
 
 GPL-2.0-or-later. See [LICENSE](LICENSE).
+
+## Development
+
+The `tests/` directory has the full behavioural/unit test suite (jsdom
+for JS, reflection-based for PHP) referenced throughout CHANGELOG.md.
+See `tests/README.md` for how to run it. These are development tooling
+only and are not part of the Joomla install ZIP.
 
 ## Changelog
 

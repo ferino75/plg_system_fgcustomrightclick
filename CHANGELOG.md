@@ -1,5 +1,56 @@
 # Changelog - plg_system_fgcustomrightclick
 
+## 1.8.1 (2026-08-28)
+
+### Packaging/repo fixes
+
+- **The install ZIP was missing LICENSE.** GPL distribution expects a
+  copy of the license text to accompany the software; it existed in the
+  repo but the build command never included it in the ZIP. Fixed.
+- **All 17 test suites referenced by name throughout this changelog since
+  v1.4.0 existed only in the development sandbox, never in the git repo**
+  - meaning the specific tests this changelog cites as evidence for each
+    fix were never actually verifiable by anyone cloning the repository,
+    and there was no regression safety net for future changes at all
+    once a given work session ended. Moved into a new `tests/` directory
+    in the repo (included in the repo archive, deliberately excluded from
+    the Joomla install ZIP - these are development tooling, not something
+    that should ship to end users). All hard-coded absolute sandbox paths
+    were converted to paths relative to `tests/` (`__dirname`/`__DIR__`
+    based) so they run correctly regardless of where the repo is cloned -
+    every test was re-run from its new location to confirm this.
+    Added `tests/README.md` (what each file covers, requirements, a note
+    on why the PHP stubs are kept deliberately in sync with Joomla's real
+    API rather than the plugin's assumptions - see the v1.7.0 incident)
+    and `tests/run.sh`, a one-command runner for the full suite.
+- **Investigated `media/joomla.asset.json`** (the newer declarative
+  Web Asset Manager registration format) as a possible replacement for
+  the current `registerAndUseStyle()`/`registerAndUseScript()` calls.
+  Per Joomla's own documentation, automatic `joomla.asset.json` discovery
+  is only implemented for `media/vendor`, `media/system`, `media/legacy`,
+  and the currently-dispatched component's `media/{com_x}` folder -
+  modules are explicitly documented as NOT auto-discovered, and plugins
+  aren't mentioned in the discovery list either, implying the same
+  applies to them. Using it would require an additional explicit
+  `$wr->addRegistryFile()` call, and running both registration paths
+  side by side risks a duplicate-asset-name conflict with the
+  already-working explicit registration, for no functional benefit given
+  this plugin's simple single-script/single-style asset footprint.
+  Not changed; documented here so the reasoning isn't lost if revisited.
+- **Confirmed `updates.xml`'s `<client>site</client>` is already
+  correct** for a plugin (verified directly against Joomla's official
+  update-server documentation, which states plugins are always installed
+  with a client of site/client_id=0, and that update XML must explicitly
+  say so or Joomla defaults to administrator and never matches). No
+  change needed.
+- The CSS/JS bundle still loads whenever any protection is active, even
+  if only "Discourage developer-tools shortcuts" (which needs no CSS at
+  all) is on with the right-click mode set to "No". Left as-is: the
+  stylesheet is roughly 9KB uncompressed (a few hundred bytes gzipped),
+  and splitting it into multiple conditionally-loaded files to shave that
+  off in an already-narrow edge case was judged not worth the added
+  complexity and maintenance burden.
+
 ## 1.8.0 (2026-08-28)
 
 ### Theming/accessibility fixes + admin UX cleanup
