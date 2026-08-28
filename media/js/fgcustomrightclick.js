@@ -39,13 +39,40 @@
 
     const PREFIX = 'crc';
 
+    /**
+     * Whitelisted custom-menu actions. No admin-provided string is ever
+     * executed as code - each entry here is a fixed, audited function.
+     * Kept in sync with ALLOWED_ACTIONS in Fgcustomrightclick.php.
+     */
+    const ACTIONS = {
+        reload: () => window.location.reload(),
+        copy_url: () => {
+            if (navigator.clipboard?.writeText) {
+                navigator.clipboard.writeText(window.location.href).catch(() => {});
+            }
+        },
+        print: () => window.print(),
+        scroll_top: () => window.scrollTo({ top: 0, behavior: 'smooth' }),
+        share: () => {
+            if (navigator.share) {
+                navigator.share({ url: window.location.href, title: document.title }).catch(() => {});
+            } else if (navigator.clipboard?.writeText) {
+                navigator.clipboard.writeText(window.location.href).catch(() => {});
+            }
+        },
+    };
+
     // menuItems may arrive as an array or (after JSON round-trips) an object
     let menuItems = [];
     if (cfg.menuItems) {
         menuItems = Array.isArray(cfg.menuItems)
             ? cfg.menuItems
             : Object.values(cfg.menuItems);
-        menuItems = menuItems.filter((it) => it && (it.type === 'separator' || (it.label && it.value)));
+        menuItems = menuItems.filter((it) => it && (
+            it.type === 'separator'
+            || (it.type === 'action' && it.label && ACTIONS[it.action])
+            || (it.type !== 'action' && it.label && it.value)
+        ));
     }
 
     let popupEl = null;
@@ -208,6 +235,20 @@
         }
     };
 
+    const runMenuAction = (item) => {
+        if (item.type === 'action') {
+            ACTIONS[item.action]?.();
+            return;
+        }
+        // 'link'
+        const url = item.value.split('{url}').join(encodeURIComponent(window.location.href));
+        if (item.newtab) {
+            window.open(url, '_blank', 'noopener');
+        } else {
+            window.location.href = url;
+        }
+    };
+
     const buildMenu = () => {
         const menu = document.createElement('div');
         menu.className = `${PREFIX}-menu`;
@@ -247,23 +288,7 @@
 
             btn.addEventListener('click', () => {
                 closeMenu();
-                if (item.type === 'js') {
-                    try {
-                        /* Admin-provided JS snippet, executed in page context.
-                           {url} placeholder is replaced with current URL. */
-                        const code = item.value.split('{url}').join(window.location.href);
-                        new Function(code)();
-                    } catch (err) {
-                        console.error?.('[fgcustomrightclick] menu item JS error:', err);
-                    }
-                } else {
-                    const url = item.value.split('{url}').join(encodeURIComponent(window.location.href));
-                    if (item.newtab) {
-                        window.open(url, '_blank', 'noopener');
-                    } else {
-                        window.location.href = url;
-                    }
-                }
+                runMenuAction(item);
             });
 
             menu.appendChild(btn);

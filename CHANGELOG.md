@@ -1,5 +1,38 @@
 # Changelog - plg_system_fgcustomrightclick
 
+## 1.4.0 (2026-08-28)
+
+### Security fix (breaking change)
+
+- **Removed the "JavaScript" custom-menu item type entirely.** It previously
+  built a code string from the admin-configured value (with the `{url}`
+  placeholder replaced by the raw, unescaped current page URL) and executed
+  it via `new Function()`. This meant: (1) a compromised admin account
+  could inject arbitrary code that runs on every page view, (2) the plugin
+  required `unsafe-eval` in any Content-Security-Policy, and (3) because
+  the page URL was spliced into the JS source text rather than passed as a
+  function argument, a crafted URL fragment (e.g. containing `'`, `;`, or
+  backticks - characters browsers do not URL-encode in a fragment) could
+  break out of the intended snippet and inject additional code.
+- **Replaced it with a fixed, audited whitelist of built-in actions**:
+  reload page, copy page URL to clipboard, print page, scroll to top,
+  share page (Web Share API with clipboard fallback). The admin form now
+  offers a dropdown of these actions instead of a free-text code field -
+  there is no field left anywhere in the plugin that can reach `eval`,
+  `new Function`, or similar.
+- Existing "Custom menu" configurations using the old JavaScript item type
+  are dropped (not migrated) on upgrade - `getMenuItems()` only recognises
+  `link`, `action`, and `separator` types now. Re-create those items using
+  the new "Built-in action" type after upgrading.
+- Link items are unaffected: the `{url}` placeholder there was already
+  `encodeURIComponent()`-escaped and only ever used as a URL, never as code.
+- Added a dedicated jsdom security-regression suite
+  (`test_fg_crc_security.js`) that asserts `new Function(` does not appear
+  anywhere in the shipped script, that whitelisted actions run the real
+  (stubbed) browser API and nothing else, that a forged/out-of-whitelist
+  action key is a silent no-op, and that a deliberately crafted
+  `{url}`-breaking page URL is only ever used as a URL string.
+
 ## 1.3.0 (2026-08-27)
 
 Rebranded into the FG series as `plg_system_fgcustomrightclick` (previously

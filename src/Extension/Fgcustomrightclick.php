@@ -21,8 +21,10 @@ use Joomla\Event\SubscriberInterface;
  * Disables printing, text selection/copy, image dragging, developer-tools
  * keyboard shortcuts, and the browser context menu on the frontend,
  * optionally replacing the context menu with a popup message or a fully
- * custom ARIA-accessible context menu. Rules apply only to the configured
- * user groups.
+ * custom ARIA-accessible context menu. Custom menu items are either a link
+ * or one of a fixed, whitelisted set of built-in actions - there is no way
+ * to enter or execute arbitrary code from the admin form. Rules apply only
+ * to the configured user groups.
  *
  * @since 1.3.0
  */
@@ -143,7 +145,18 @@ final class Fgcustomrightclick extends CMSPlugin implements SubscriberInterface
     }
 
     /**
+     * Whitelist of custom-menu actions the frontend script is allowed to run.
+     * Kept in sync with the ACTIONS map in fgcustomrightclick.js.
+     */
+    private const ALLOWED_ACTIONS = ['reload', 'copy_url', 'print', 'scroll_top', 'share'];
+
+    /**
      * Normalise the subform menu items into a clean array for JS.
+     *
+     * No arbitrary code from the admin form ever reaches the frontend:
+     * 'link' items carry a URL, 'action' items carry one of a fixed set of
+     * whitelisted action keys that the frontend script maps to predefined
+     * behaviour. There is no 'js'/eval item type.
      *
      * @return array<int, array<string, mixed>>
      */
@@ -162,14 +175,36 @@ final class Fgcustomrightclick extends CMSPlugin implements SubscriberInterface
             }
 
             $label = trim((string) ($row['label'] ?? ''));
+
+            if ($label === '') {
+                continue;
+            }
+
+            if ($type === 'action') {
+                $action = (string) ($row['action'] ?? '');
+
+                if (!\in_array($action, self::ALLOWED_ACTIONS, true)) {
+                    continue;
+                }
+
+                $items[] = [
+                    'type'   => 'action',
+                    'label'  => $label,
+                    'icon'   => trim((string) ($row['icon'] ?? '')),
+                    'action' => $action,
+                ];
+                continue;
+            }
+
+            // 'link' (default/fallback for legacy rows)
             $value = trim((string) ($row['value'] ?? ''));
 
-            if ($label === '' || $value === '') {
+            if ($value === '') {
                 continue;
             }
 
             $items[] = [
-                'type'   => $type === 'js' ? 'js' : 'link',
+                'type'   => 'link',
                 'label'  => $label,
                 'icon'   => trim((string) ($row['icon'] ?? '')),
                 'value'  => $value,

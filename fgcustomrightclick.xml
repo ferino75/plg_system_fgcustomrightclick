@@ -5,7 +5,7 @@
 	<creationDate>2026-08-27</creationDate>
 	<copyright>(C) 2026 Fero. All rights reserved.</copyright>
 	<license>GNU General Public License version 2 or later</license>
-	<version>1.3.0</version>
+	<version>1.4.0</version>
 	<description>PLG_SYSTEM_FGCUSTOMRIGHTCLICK_XML_DESCRIPTION</description>
 	<namespace path="src">FG\Plugin\System\Fgcustomrightclick</namespace>
 
@@ -179,7 +179,7 @@
 							default="link"
 						>
 							<option value="link">PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_ITEM_TYPE_LINK</option>
-							<option value="js">PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_ITEM_TYPE_JS</option>
+							<option value="action">PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_ITEM_TYPE_ACTION</option>
 							<option value="separator">PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_ITEM_TYPE_SEPARATOR</option>
 						</field>
 						<field
@@ -195,12 +195,25 @@
 						/>
 						<field
 							name="value"
-							type="textarea"
-							rows="2"
-							filter="raw"
+							type="text"
 							label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_ITEM_VALUE_LABEL"
 							description="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_ITEM_VALUE_DESC"
+							showon="type:link"
 						/>
+						<field
+							name="action"
+							type="list"
+							label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_ITEM_ACTION_LABEL"
+							description="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_ITEM_ACTION_DESC"
+							default="reload"
+							showon="type:action"
+						>
+							<option value="reload">PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_ITEM_ACTION_RELOAD</option>
+							<option value="copy_url">PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_ITEM_ACTION_COPY_URL</option>
+							<option value="print">PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_ITEM_ACTION_PRINT</option>
+							<option value="scroll_top">PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_ITEM_ACTION_SCROLL_TOP</option>
+							<option value="share">PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_ITEM_ACTION_SHARE</option>
+						</field>
 						<field
 							name="newtab"
 							type="radio"
@@ -208,6 +221,7 @@
 							label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_ITEM_NEWTAB_LABEL"
 							default="0"
 							filter="integer"
+							showon="type:link"
 						>
 							<option value="0">JNO</option>
 							<option value="1">JYES</option>
