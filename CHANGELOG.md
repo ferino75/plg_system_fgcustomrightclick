@@ -1,5 +1,36 @@
 # Changelog - plg_system_fgcustomrightclick
 
+## 1.9.2 (2026-08-28)
+
+### CSS specificity hardening for "Disable text selection"
+
+- **Raised the specificity of the `user-select` blocking/exemption
+  selectors** by repeating the `.crc-noselect`/
+  `.crc-noselect-interactive-exempt` class token 4 times in each
+  selector (e.g. `.crc-noselect.crc-noselect.crc-noselect.crc-noselect
+  body *`) - a standard, browser-supported technique. This still matches
+  the exact same single class JS adds to `<html>`, it just makes the
+  selector count for more classes in the specificity calculation, so it
+  now reliably wins against a realistic template override using one or
+  two classes, even one also marked `!important` (both sides being
+  `!important` means specificity is what decides the winner).
+- **Documented the ceiling this cannot get past**, in the CSS comments
+  and in a new README "Known limitations" section: CSS specificity
+  always ranks ID selectors above any number of class selectors,
+  regardless of `!important` - so a template rule like
+  `body #main-content p { user-select: text !important; }` will still
+  win no matter how many times a class-only selector repeats. No
+  selector this plugin could ship is guaranteed to beat an arbitrary,
+  unknown competing stylesheet; a template that specifically overrides
+  this needs its own matching-or-higher-specificity fix, not a plugin
+  update.
+- Added `test_fg_crc_css_specificity.js` (10 assertions with a small
+  purpose-built specificity calculator): confirms the 4x repetition is
+  present on both selector groups, computes that the boosted selector
+  now outranks a realistic single/double-class template override, and -
+  just as importantly - confirms an ID-based override still wins, proving
+  that documented ceiling is real rather than an oversight.
+
 ## 1.9.1 (2026-08-28)
 
 ### Third clipboard fallback tier - future-proofed against execCommand going away

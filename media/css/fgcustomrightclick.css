@@ -60,22 +60,41 @@
 }
 
 /* ---- text selection off ----
-   !important on both the blocking rule and the exemptions below: without
-   it, a template's own CSS with equal specificity (e.g. "body input {...}")
-   loaded after this stylesheet could silently override either side,
-   depending on load order the plugin has no control over. */
-.crc-noselect body,
-.crc-noselect body * {
+   !important on all three rule groups below: without it, a template's
+   own CSS with equal specificity (e.g. "body input {...}") loaded after
+   this stylesheet could silently override any of them, depending on
+   load order the plugin has no control over.
+
+   The class is also repeated 4x in each selector (".crc-noselect" x4) -
+   a standard, browser-supported technique for raising CSS specificity
+   without an ID. Each repetition targets the exact same single class on
+   <html> (JS never adds it more than once), it just makes the selector
+   itself count for more in the specificity calculation, the same way
+   ".foo.foo.foo.foo" outweighs ".foo.bar.baz" while still only matching
+   elements with class="foo".
+
+   Ceiling this cannot get past: CSS specificity compares ID count
+   before class count, always - no number of repeated classes can ever
+   out-rank a template selector that includes so much as one ID (e.g.
+   "body #main-content p { user-select: text !important; }" beats any
+   class-only selector regardless of how many times the class repeats).
+   If a specific template still wins in practice, the fix has to happen
+   in that template's own CSS (matching or exceeding its selector's
+   specificity, or removing its rule) - there is no selector this
+   plugin could ship that is guaranteed to always win against an
+   arbitrary, unknown competing stylesheet. */
+.crc-noselect.crc-noselect.crc-noselect.crc-noselect body,
+.crc-noselect.crc-noselect.crc-noselect.crc-noselect body * {
     -webkit-user-select: none !important;
     user-select: none !important;
 }
-.crc-noselect input,
-.crc-noselect textarea,
-.crc-noselect select,
-.crc-noselect [contenteditable="true"],
-.crc-noselect [contenteditable="true"] *,
-.crc-noselect [contenteditable=""],
-.crc-noselect [contenteditable=""] * {
+.crc-noselect.crc-noselect.crc-noselect.crc-noselect input,
+.crc-noselect.crc-noselect.crc-noselect.crc-noselect textarea,
+.crc-noselect.crc-noselect.crc-noselect.crc-noselect select,
+.crc-noselect.crc-noselect.crc-noselect.crc-noselect [contenteditable="true"],
+.crc-noselect.crc-noselect.crc-noselect.crc-noselect [contenteditable="true"] *,
+.crc-noselect.crc-noselect.crc-noselect.crc-noselect [contenteditable=""],
+.crc-noselect.crc-noselect.crc-noselect.crc-noselect [contenteditable=""] * {
     -webkit-user-select: text !important;
     user-select: text !important;
 }
@@ -84,19 +103,20 @@
    allow selecting text inside links, buttons, and the other elements the
    JS-side exemption covers that actually contain selectable text (iframe/
    canvas/audio/video are deliberately excluded here - they don't have
-   text content in the relevant sense). */
-.crc-noselect-interactive-exempt a,
-.crc-noselect-interactive-exempt a *,
-.crc-noselect-interactive-exempt button,
-.crc-noselect-interactive-exempt button *,
-.crc-noselect-interactive-exempt summary,
-.crc-noselect-interactive-exempt summary *,
-.crc-noselect-interactive-exempt details,
-.crc-noselect-interactive-exempt details *,
-.crc-noselect-interactive-exempt label,
-.crc-noselect-interactive-exempt label *,
-.crc-noselect-interactive-exempt [role="button" i],
-.crc-noselect-interactive-exempt [role="button" i] * {
+   text content in the relevant sense). Same specificity-boost technique
+   and the same ceiling as above. */
+.crc-noselect-interactive-exempt.crc-noselect-interactive-exempt.crc-noselect-interactive-exempt.crc-noselect-interactive-exempt a,
+.crc-noselect-interactive-exempt.crc-noselect-interactive-exempt.crc-noselect-interactive-exempt.crc-noselect-interactive-exempt a *,
+.crc-noselect-interactive-exempt.crc-noselect-interactive-exempt.crc-noselect-interactive-exempt.crc-noselect-interactive-exempt button,
+.crc-noselect-interactive-exempt.crc-noselect-interactive-exempt.crc-noselect-interactive-exempt.crc-noselect-interactive-exempt button *,
+.crc-noselect-interactive-exempt.crc-noselect-interactive-exempt.crc-noselect-interactive-exempt.crc-noselect-interactive-exempt summary,
+.crc-noselect-interactive-exempt.crc-noselect-interactive-exempt.crc-noselect-interactive-exempt.crc-noselect-interactive-exempt summary *,
+.crc-noselect-interactive-exempt.crc-noselect-interactive-exempt.crc-noselect-interactive-exempt.crc-noselect-interactive-exempt details,
+.crc-noselect-interactive-exempt.crc-noselect-interactive-exempt.crc-noselect-interactive-exempt.crc-noselect-interactive-exempt details *,
+.crc-noselect-interactive-exempt.crc-noselect-interactive-exempt.crc-noselect-interactive-exempt.crc-noselect-interactive-exempt label,
+.crc-noselect-interactive-exempt.crc-noselect-interactive-exempt.crc-noselect-interactive-exempt.crc-noselect-interactive-exempt label *,
+.crc-noselect-interactive-exempt.crc-noselect-interactive-exempt.crc-noselect-interactive-exempt.crc-noselect-interactive-exempt [role="button" i],
+.crc-noselect-interactive-exempt.crc-noselect-interactive-exempt.crc-noselect-interactive-exempt.crc-noselect-interactive-exempt [role="button" i] * {
     -webkit-user-select: text !important;
     user-select: text !important;
 }

@@ -4,7 +4,7 @@
 
 [![Joomla](https://img.shields.io/badge/Joomla-6%2C%205%2C%204-1a6877?logo=joomla)](https://www.joomla.org/)
 [![License: GPL v2](https://img.shields.io/badge/License-GPLv2-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.9.1-ff6b4a)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.9.2-ff6b4a)](CHANGELOG.md)
 
 A native Joomla system plugin that disables printing, text selection/copy,
 image dragging, developer-tools keyboard shortcuts, and the browser's
@@ -60,6 +60,21 @@ Click for Joomla 3.X" extension.
 2. In Joomla, go to **System → Install → Extensions** and upload the ZIP.
 3. Enable the plugin under **System → Manage → Plugins** and search for
    "FG - Custom Right Click".
+
+## Known limitations
+
+- **"Disable text selection" and a template's own CSS.** This feature
+  uses `user-select: none !important` with a boosted-specificity
+  selector, which reliably wins against most template CSS - but a
+  template rule that uses an ID selector (e.g.
+  `body #main-content p { user-select: text !important; }`) will still
+  win, because CSS specificity always ranks ID selectors above any
+  number of class selectors, regardless of `!important`. There is no
+  selector this plugin could ship that is guaranteed to beat an
+  arbitrary, unknown competing stylesheet. If your specific template
+  still allows selection where you don't want it, the fix has to happen
+  in that template's own CSS: add a matching-or-higher-specificity
+  override there, or remove/adjust its rule.
 
 ## Requirements
 
