@@ -160,6 +160,60 @@
         }
     };
 
+    /**
+     * Minimal allowlist HTML sanitiser for the admin-authored popup message.
+     *
+     * The message field is admin-only (same trust level as any other
+     * plugin parameter), so this is defense-in-depth against a
+     * compromised admin account or a copy-pasted message containing
+     * stray markup - not a boundary against untrusted visitor input
+     * (none reaches this field). Only a small set of inline/structural
+     * tags survive; everything else (script, iframe, object, embed,
+     * style, event-handler attributes, javascript:/data: URLs, ...) is
+     * stripped, tag and all.
+     */
+    const SANITIZE_ALLOWED_TAGS = new Set(['A', 'STRONG', 'EM', 'B', 'I', 'BR', 'P', 'SPAN', 'UL', 'OL', 'LI']);
+    const SANITIZE_ALLOWED_ATTRS = { A: ['href', 'title', 'target'] };
+    const SANITIZE_SAFE_URL = /^(https?:|mailto:|tel:)/i;
+
+    const sanitizeHtml = (html) => {
+        const template = document.createElement('template');
+        template.innerHTML = String(html);
+
+        const clean = (root) => {
+            Array.from(root.childNodes).forEach((node) => {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    return;
+                }
+                if (node.nodeType !== Node.ELEMENT_NODE || !SANITIZE_ALLOWED_TAGS.has(node.tagName)) {
+                    node.remove();
+                    return;
+                }
+                const allowedAttrs = SANITIZE_ALLOWED_ATTRS[node.tagName] || [];
+                Array.from(node.attributes).forEach((attr) => {
+                    if (!allowedAttrs.includes(attr.name.toLowerCase())) {
+                        node.removeAttribute(attr.name);
+                    }
+                });
+                if (node.tagName === 'A') {
+                    const href = (node.getAttribute('href') || '').trim();
+                    if (!SANITIZE_SAFE_URL.test(href)) {
+                        node.removeAttribute('href');
+                    }
+                    if (node.getAttribute('target') && node.getAttribute('target') !== '_blank') {
+                        node.removeAttribute('target');
+                    }
+                    // Always force safe rel when opening in a new tab
+                    node.setAttribute('rel', 'noopener noreferrer');
+                }
+                clean(node);
+            });
+        };
+
+        clean(template.content);
+        return template.innerHTML;
+    };
+
     const buildPopup = () => {
         const overlay = document.createElement('div');
         overlay.className = `${PREFIX}-overlay`;
@@ -187,8 +241,9 @@
 
         const body = document.createElement('div');
         body.className = `${PREFIX}-body`;
-        // Message is admin-provided HTML (matches original plugin behaviour)
-        body.innerHTML = cfg.popup?.message || '';
+        // Admin-authored HTML, restricted to a safe tag/attribute allowlist
+        // (see sanitizeHtml above) before it is ever injected into the page.
+        body.innerHTML = cfg.popup?.message ? sanitizeHtml(cfg.popup.message) : '';
         box.appendChild(body);
 
         overlay.appendChild(box);

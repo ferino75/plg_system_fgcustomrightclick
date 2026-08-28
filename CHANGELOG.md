@@ -1,5 +1,32 @@
 # Changelog - plg_system_fgcustomrightclick
 
+## 1.4.1 (2026-08-28)
+
+### Hardening
+
+- The popup message field (`popup_message`) still accepts admin-authored
+  HTML as before, but it is now run through a minimal allowlist sanitiser
+  before being injected into the page. Only `a`, `strong`, `em`, `b`, `i`,
+  `br`, `p`, `span`, `ul`, `ol`, `li` survive; every other tag (`script`,
+  `iframe`, `object`, `embed`, `style`, ...) is stripped entirely. All
+  attributes are stripped except `href`/`title`/`target` on `<a>`, event
+  handler attributes (`onclick`, `onerror`, ...) included. `<a href>` is
+  additionally validated against an `https?:`/`mailto:`/`tel:` allowlist -
+  a `javascript:` or other unsafe scheme is dropped, and `rel="noopener
+  noreferrer"` is always forced.
+- This is defense-in-depth, not a fix for an exploitable vulnerability:
+  the message field is admin-only configuration with no visitor-supplied
+  input reaching it, the same trust model Joomla itself uses for article
+  content and the Custom HTML module. The hardening specifically narrows
+  the blast radius if an admin account is ever compromised.
+- The popup title was already rendered via `textContent` (never HTML) and
+  is unaffected.
+- Added a dedicated jsdom test suite (`test_fg_crc_sanitizer.js`, 19
+  assertions) covering script-tag stripping, event-handler-attribute
+  stripping, `javascript:`-URL stripping with safe-URL preservation,
+  `iframe`/`object`/`style` stripping, and that the allowlisted formatting
+  tags still render correctly.
+
 ## 1.4.0 (2026-08-28)
 
 ### Security fix (breaking change)
