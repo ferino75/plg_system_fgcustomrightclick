@@ -1,5 +1,28 @@
 # Changelog - plg_system_fgcustomrightclick
 
+## 1.10.0 (2026-08-29)
+
+### New feature: "Disable saving the page" (Ctrl/Cmd+S)
+
+- Added a new option, `disable_save`, that blocks the browser's "Save
+  Page As" shortcut (Ctrl+S / Cmd+S). Off by default.
+- Implemented consistently with the existing Ctrl+P print-blocking
+  handler: `preventDefault()` alone is enough to stop the browser's own
+  save dialog, and deliberately no `stopImmediatePropagation()` - so an
+  unrelated site feature bound to the same key combo (e.g. an in-page
+  editor with its own save shortcut) still receives the event, matching
+  the v1.6.3 fix applied to the devtools/print handlers.
+- This was added after comparing the plugin against a competing Joomla
+  module ("Ol No Right Click") that offers the same shortcut - the one
+  feature it had that this plugin didn't.
+- Added `test_fg_crc_disable_save.js` (8 jsdom assertions): Ctrl+S and
+  Cmd+S are both blocked when enabled, the option is off by default and
+  does nothing when left off, a plain "s" keypress is never affected,
+  the no-`stopImmediatePropagation()` behaviour is verified the same way
+  as the earlier devtools test, and the option alone (with the right-click
+  mode set to "No" and nothing else enabled) is enough to activate the
+  script rather than being silently skipped.
+
 ## 1.9.2 (2026-08-28)
 
 ### CSS specificity hardening for "Disable text selection"

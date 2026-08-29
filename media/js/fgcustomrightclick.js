@@ -1033,6 +1033,19 @@
         }, true);
     }
 
+    // Disable Ctrl/Cmd+S ("Save Page As"). Same reasoning as the print
+    // handler above: preventDefault() alone is enough to stop the
+    // browser's own save dialog, and no stopImmediatePropagation() so a
+    // site's own unrelated Ctrl/Cmd+S handler (e.g. an in-page editor)
+    // still gets the event.
+    if (cfg.disableSave) {
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+                e.preventDefault();
+            }
+        }, true);
+    }
+
     // iOS Safari (and other WebKit-based browsers on iOS) still offer a
     // "Save Image"/"Save Video" action sheet on a long-press even when
     // contextmenu and dragstart are both prevented - that native "callout"

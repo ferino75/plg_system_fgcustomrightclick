@@ -77,13 +77,14 @@ final class Fgcustomrightclick extends CMSPlugin implements SubscriberInterface
         $disablePrint            = (int) $this->params->get('disable_print', 0);
         $disableSelect           = (int) $this->params->get('disable_select', 0);
         $disableImgDrag          = (int) $this->params->get('disable_imagedrag', 0);
+        $disableSave             = (int) $this->params->get('disable_save', 0);
         $blockDevtools           = (int) $this->params->get('block_devtools', 0);
         $protectInteractive      = (int) $this->params->get('protect_interactive', 1);
         $protectVideo            = (int) $this->params->get('protect_video', 0);
         $protectBackgroundImages = (int) $this->params->get('protect_background_images', 0);
 
         // Nothing to do
-        if ($mode === 0 && !$disablePrint && !$disableSelect && !$disableImgDrag && !$blockDevtools) {
+        if ($mode === 0 && !$disablePrint && !$disableSelect && !$disableImgDrag && !$disableSave && !$blockDevtools) {
             return;
         }
 
@@ -92,6 +93,7 @@ final class Fgcustomrightclick extends CMSPlugin implements SubscriberInterface
             'disablePrint'             => (bool) $disablePrint,
             'disableSelect'            => (bool) $disableSelect,
             'disableImageDrag'         => (bool) $disableImgDrag,
+            'disableSave'              => (bool) $disableSave,
             'blockDevtools'            => (bool) $blockDevtools,
             'protectInteractive'       => (bool) $protectInteractive,
             'protectVideo'             => (bool) $protectVideo,
