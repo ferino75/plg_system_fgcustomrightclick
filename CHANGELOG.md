@@ -1,5 +1,26 @@
 # Changelog - plg_system_fgcustomrightclick
 
+## 1.10.1 (2026-08-29)
+
+### Honesty fix - "Disable saving the page" relabeled
+
+- **Reworded the v1.10.0 "Disable saving the page" option** (label and
+  description only - the underlying `disable_save` setting key is
+  unchanged, so existing configurations keep whatever they had). Raised
+  directly by the plugin's own maintainer testing the feature: it only
+  blocks the Ctrl/Cmd+S keyboard shortcut, but the browser's own menu
+  (e.g. the three-dot menu -> "Save page as...") offers the identical
+  action and cannot be blocked from a web page at all - clicking a
+  browser's own chrome/menu never fires any event a page's JavaScript
+  can see or prevent, the same fundamental limitation the devtools
+  option already documents.
+- Renamed "Disable saving the page" to "Discourage saving the page" and
+  the description now states this limitation explicitly, matching the
+  wording already used for "Discourage developer-tools shortcuts" since
+  v1.6.3 - both are minor deterrents against the keyboard shortcut only,
+  not a way to actually prevent the browser's built-in save/inspect
+  functionality, which no page-level code can reach.
+
 ## 1.10.0 (2026-08-29)
 
 ### New feature: "Disable saving the page" (Ctrl/Cmd+S)

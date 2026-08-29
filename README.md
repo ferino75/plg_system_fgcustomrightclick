@@ -4,7 +4,7 @@
 
 [![Joomla](https://img.shields.io/badge/Joomla-6%2C%205%2C%204-1a6877?logo=joomla)](https://www.joomla.org/)
 [![License: GPL v2](https://img.shields.io/badge/License-GPLv2-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.10.0-ff6b4a)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.10.1-ff6b4a)](CHANGELOG.md)
 
 A native Joomla system plugin that disables printing, text selection/copy,
 image dragging, developer-tools keyboard shortcuts, and the browser's
@@ -26,7 +26,9 @@ Click for Joomla 3.X" extension.
 - Disable image dragging (and suppresses iOS/WebKit's long-press "Save
   Image"/"Save Video" callout, which right-click/drag prevention alone
   does not affect)
-- Disable saving the page (blocks Ctrl/Cmd+S)
+- Discourage saving the page (blocks Ctrl/Cmd+S only - the browser's own
+  menu offers the same "Save page as..." action and cannot be blocked
+  from a web page)
 - Discourage developer-tools keyboard shortcuts (F12, Ctrl+Shift+I/J/C,
   Cmd+Opt+I/J/C, Ctrl/Cmd+U) - a minor deterrent, not a security measure;
   DevTools remain reachable via the browser's own menu regardless
