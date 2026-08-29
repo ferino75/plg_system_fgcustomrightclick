@@ -1,6 +1,6 @@
-# FG Custom Right Click
-
 <img src="assets/logo.png" width="96" height="96" alt="FG Custom Right Click logo">
+
+# FG Custom Right Click
 
 [![Release](https://img.shields.io/badge/release-1.9.2-ff6b4a)](CHANGELOG.md)
 [![Joomla](https://img.shields.io/badge/Joomla-6%2C%205%2C%204-1a6877?logo=joomla)](https://www.joomla.org/)
