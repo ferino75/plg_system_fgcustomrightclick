@@ -5,7 +5,7 @@
 	<creationDate>2026-08-27</creationDate>
 	<copyright>(C) 2026 Fero. All rights reserved.</copyright>
 	<license>GNU General Public License version 2 or later</license>
-	<version>1.11.1</version>
+	<version>1.12.0</version>
 	<description>PLG_SYSTEM_FGCUSTOMRIGHTCLICK_XML_DESCRIPTION</description>
 	<namespace path="src">FG\Plugin\System\Fgcustomrightclick</namespace>
 
@@ -232,6 +232,34 @@
 						/>
 					</form>
 				</field>
+
+			</fieldset>
+
+			<fieldset name="accessibility" label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELDSET_ACCESSIBILITY">
+
+				<field
+					name="noscript_warning"
+					type="radio"
+					layout="joomla.form.field.radio.switcher"
+					label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_NOSCRIPT_WARNING_LABEL"
+					description="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_NOSCRIPT_WARNING_DESC"
+					default="0"
+					filter="integer"
+				>
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>
+
+				<field
+					name="noscript_message"
+					type="textarea"
+					rows="3"
+					filter="raw"
+					label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_NOSCRIPT_MESSAGE_LABEL"
+					description="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_NOSCRIPT_MESSAGE_DESC"
+					default=""
+					showon="noscript_warning:1"
+				/>
 
 			</fieldset>
 

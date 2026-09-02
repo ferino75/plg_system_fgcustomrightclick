@@ -47,6 +47,7 @@ final class Fgcustomrightclick extends CMSPlugin implements SubscriberInterface
     {
         return [
             'onBeforeCompileHead' => 'onBeforeCompileHead',
+            'onAfterRender'       => 'onAfterRender',
         ];
     }
 
@@ -89,8 +90,13 @@ final class Fgcustomrightclick extends CMSPlugin implements SubscriberInterface
         $protectVideo            = (int) $this->params->get('protect_video', 0);
         $protectBackgroundImages = (int) $this->params->get('protect_background_images', 0);
         $customShortcuts         = $this->getCustomShortcuts();
+        $noscriptWarning         = (int) $this->params->get('noscript_warning', 0);
 
-        // Nothing to do
+        // Nothing to do. noscript_warning is included here purely so this
+        // plugin's stylesheet (which styles .crc-noscript-warning) is
+        // registered even when no other protection is enabled - the
+        // <noscript> markup itself is injected separately in
+        // onAfterRender(), independent of anything below.
         if (
             $mode === 0
             && !$disablePrint
@@ -99,6 +105,7 @@ final class Fgcustomrightclick extends CMSPlugin implements SubscriberInterface
             && !$disableSave
             && !$blockDevtools
             && !$customShortcuts
+            && !$noscriptWarning
         ) {
             return;
         }
@@ -174,6 +181,66 @@ final class Fgcustomrightclick extends CMSPlugin implements SubscriberInterface
         );
 
         $doc->addScriptOptions('plg_system_fgcustomrightclick', $options);
+    }
+
+    /**
+     * Optionally injects a <noscript> warning into the rendered page when
+     * "Show warning when JavaScript is disabled" is on. Deliberately the
+     * ONLY thing this plugin ever does: no "hide the page content"
+     * option exists, and none is planned - a visitor without JavaScript
+     * already sees the page exactly as normal (none of this plugin's
+     * protections apply without JS, since they are all JS-based), and
+     * this stays that way. <noscript> is native HTML that browsers only
+     * render when JavaScript is OFF, so no JS-side logic is involved or
+     * possible here at all - this is the one part of the plugin that
+     * runs the opposite way round from everything else.
+     */
+    public function onAfterRender(): void
+    {
+        if (!(int) $this->params->get('noscript_warning', 0)) {
+            return;
+        }
+
+        $app = $this->getApplication();
+
+        if (!$app->isClient('site')) {
+            return;
+        }
+
+        $doc = $app->getDocument();
+
+        if (!$doc instanceof HtmlDocument) {
+            return;
+        }
+
+        if (!$this->isUserTargeted() || $this->isComponentExcluded() || $this->isUrlExcluded()) {
+            return;
+        }
+
+        $this->loadLanguage();
+
+        $message = $this->sanitizePopupMessage((string) $this->params->get('noscript_message', ''));
+
+        if (trim($message) === '') {
+            $message = Text::_('PLG_SYSTEM_FGCUSTOMRIGHTCLICK_NOSCRIPT_DEFAULT_MESSAGE');
+        }
+
+        $body = (string) $app->getBody();
+
+        // Insert right before the LAST </body>, not the first match of a
+        // naive str_replace - a literal "</body>" string could otherwise
+        // appear inside page content (a code sample, an escaped example
+        // in an article) and cause a double/misplaced injection.
+        $bodyClosePos = strripos($body, '</body>');
+
+        if ($bodyClosePos === false) {
+            return;
+        }
+
+        $noscript = '<noscript><div class="crc-noscript-warning">' . $message . '</div></noscript>';
+        $body     = substr_replace($body, $noscript, $bodyClosePos, 0);
+
+        $app->setBody($body);
     }
 
     /**

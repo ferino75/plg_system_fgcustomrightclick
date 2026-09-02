@@ -1,5 +1,46 @@
 # Changelog - plg_system_fgcustomrightclick
 
+## 1.12.0 (2026-08-29)
+
+### New feature: optional JavaScript-disabled warning (new "Accessibility" tab)
+
+- **Added `noscript_warning`**, off by default: shows a small banner via
+  HTML's native `<noscript>` tag when a visitor has JavaScript turned
+  off. Considered after comparing against a competing extension that
+  offers "do nothing / warn / hide page content" as three choices for
+  this scenario.
+- **Deliberately implemented ONLY the warning, never the "hide content"
+  option** - and none is planned. None of this plugin's protections
+  apply without JavaScript in the first place (they are all JS-based), so
+  a visitor without JS already sees the page completely normally; hiding
+  it from them would make a real accessibility/graceful-degradation
+  problem worse in exchange for zero actual protection gained, which
+  contradicts this plugin's stated position throughout its changelog
+  (see the "Discourage" naming already used for the devtools and
+  save-page options).
+- **Implementation**: a new `onAfterRender()` event handler (the plugin's
+  first use of this event) reads the final rendered HTML via
+  `$app->getBody()`, inserts the `<noscript>` block immediately before
+  the LAST `</body>` tag (via `strripos()`/`substr_replace()`, not a
+  naive `str_replace()` - a literal `</body>` string could otherwise
+  appear inside page content, e.g. a code sample, and cause a
+  double/misplaced insertion), and writes it back with `$app->setBody()`.
+  Respects the same user-group/component/URL exclusion guards as the
+  rest of the plugin. The warning message reuses the existing popup
+  message sanitizer (same safe-tag allowlist), and falls back to a
+  translated default when left empty.
+- The "nothing to do" early-return in `onBeforeCompileHead()` now also
+  accounts for `noscript_warning`, so this plugin's stylesheet (which
+  styles the banner) still loads even when no other protection is
+  enabled.
+- Added `test_fg_crc_noscript_php.php` (12 PHP assertions): the banner is
+  only inserted when the option is on, appears before `</body>` with the
+  configured (or default) message and styling class, a literal
+  `</body>`-like string inside page content does not cause double
+  injection, original page content is always fully preserved, the
+  administrator client is never touched, and a malformed body with no
+  `</body>` at all doesn't crash and is left unchanged.
+
 ## 1.11.1 (2026-08-29)
 
 ### Devtools-shortcut coverage gaps found comparing against Contona's "No Right Click, No Copy"

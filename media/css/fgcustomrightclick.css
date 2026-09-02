@@ -398,3 +398,21 @@
     outline: 2px solid #4a90e2;
     outline-offset: 2px;
 }
+
+/* ---- noscript warning ----
+   Only ever rendered by the browser when JavaScript is OFF (that is what
+   <noscript> means natively) - this stylesheet itself loads via a plain
+   <link> tag, unaffected by whether JS runs, so it still applies here.
+   Deliberately just a visible banner, never anything that hides page
+   content - this plugin's protections are all JS-based, so without JS
+   none of them apply anyway; the banner is purely informational. */
+.crc-noscript-warning {
+    position: relative;
+    margin: 0;
+    padding: 0.85rem 1.25rem;
+    background: var(--crc-surface-bg);
+    color: var(--crc-surface-fg);
+    border-bottom: 1px solid var(--crc-surface-border);
+    font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    text-align: center;
+}
