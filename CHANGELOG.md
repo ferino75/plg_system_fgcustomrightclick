@@ -1,5 +1,29 @@
 # Changelog - plg_system_fgcustomrightclick
 
+## 1.13.1 (2026-08-29)
+
+### Admin UX - reordered the Plugin tab's fields for a more logical flow
+
+- **"Disable right click" (`rightclick_mode`) moved to the top**, right
+  after "Apply to user groups" - it is the main mode selector that most
+  of the rest of the plugin's behaviour depends on, and was previously
+  buried after several unrelated toggles (print, select, drag, etc.),
+  which made the form read out of order relative to how the settings
+  actually relate to each other.
+- New field order: user groups -> right-click mode -> its two
+  mode-2-specific sub-options (video/background-image protection, right
+  where they logically belong, immediately under the setting that
+  reveals them) -> the independent protections (print, select, drag,
+  anti-framing, save, devtools) -> the interactive-elements exemption and
+  its own sub-option (extra exception selectors) last, since those are
+  fine-tuning that applies across every mode rather than a primary
+  choice.
+- **Purely cosmetic**: field order in the XML has no effect on parameter
+  names, storage, or any PHP/JS logic - `$this->params->get(...)` reads
+  by name regardless of position. Confirmed via a direct count that
+  every field appears in the manifest exactly once after reordering (no
+  field lost or duplicated), and the full test suite passes unchanged.
+
 ## 1.13.0 (2026-08-29)
 
 ### New feature: "Prevent framing on other sites" (anti-framing / anti-clickjacking)
