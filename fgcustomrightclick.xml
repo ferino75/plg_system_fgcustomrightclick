@@ -5,7 +5,7 @@
 	<creationDate>2026-08-27</creationDate>
 	<copyright>(C) 2026 Fero. All rights reserved.</copyright>
 	<license>GNU General Public License version 2 or later</license>
-	<version>1.12.2</version>
+	<version>1.12.3</version>
 	<description>PLG_SYSTEM_FGCUSTOMRIGHTCLICK_XML_DESCRIPTION</description>
 	<namespace path="src">FG\Plugin\System\Fgcustomrightclick</namespace>
 
@@ -266,6 +266,13 @@
 			<fieldset name="popup" label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELDSET_POPUP">
 
 				<field
+					name="popup_tab_note"
+					type="note"
+					class="alert alert-info"
+					description="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_NOTE_POPUP_TAB_DESC"
+				/>
+
+				<field
 					name="popup_enabled"
 					type="radio"
 					layout="joomla.form.field.radio.switcher"
@@ -314,6 +321,13 @@
 			</fieldset>
 
 			<fieldset name="custommenu" label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELDSET_MENU">
+
+				<field
+					name="custommenu_tab_note"
+					type="note"
+					class="alert alert-info"
+					description="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_NOTE_CUSTOMMENU_TAB_DESC"
+				/>
 
 				<field
 					name="menuitems"

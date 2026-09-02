@@ -1,5 +1,30 @@
 # Changelog - plg_system_fgcustomrightclick
 
+## 1.12.3 (2026-08-29)
+
+### Admin UX - clarified why the Popup/Custom menu tabs can appear empty
+
+- **Not a bug, but a real point of confusion**: the Popup and Custom menu
+  tabs' fields are all conditionally shown via `showon`, tied to the
+  "Disable right click" selection on the Plugin tab (`1` for Popup,
+  `3` for Custom menu). With any other mode selected, both tabs
+  legitimately show nothing at all - which looks identical to something
+  being broken, especially right after the real missing-tabs incident
+  fixed in 1.12.2.
+- Added a permanently-visible blue info note (Joomla's built-in `note`
+  form field type, `class="alert alert-info"`) at the top of both tabs,
+  explaining exactly which "Disable right click" value each tab depends
+  on. Unlike a regular field's `description` (hidden by default behind
+  the "Toggle Inline Help" button since Joomla 4), a `note` field's text
+  is always shown - the right choice for something that needs to be
+  seen immediately, not discovered via a toggle.
+- The note fields carry no value and are never read by the plugin's PHP
+  code - confirmed nothing references them, consistent with how Joomla's
+  `note` field type works (display only, nothing submitted or stored).
+- Both new strings were written and verified against
+  `test_fg_crc_language_ini_lint.js` before being added, specifically to
+  avoid any repeat of the exact class of bug fixed in 1.12.2.
+
 ## 1.12.2 (2026-08-29)
 
 ### ACTUAL root cause found and fixed - v1.12.1 addressed a real but different bug
