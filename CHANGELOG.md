@@ -1,5 +1,46 @@
 # Changelog - plg_system_fgcustomrightclick
 
+## 1.12.2 (2026-08-29)
+
+### ACTUAL root cause found and fixed - v1.12.1 addressed a real but different bug
+
+- **The real culprit**: the "Accessibility" tab's `noscript_warning` field
+  description contained the literal, unclosed text `<noscript>` as plain
+  English prose ("...HTML's native `<noscript>` tag..."). Joomla renders
+  field descriptions as raw HTML, not escaped text. Per the HTML5 spec,
+  `<noscript>` is a "raw text" element when scripting is enabled -
+  meaning the browser treats *everything* from that point onward as
+  inert text, not markup, until it finds a matching `</noscript>`
+  string. With none anywhere later in the page, this silently swallowed
+  the rest of the DOM - including the Popup and Custom menu tabs, and
+  evidently enough of the page's structure to also break the Save/
+  Save & Close toolbar buttons - with zero console errors, since the
+  browser was correctly following the spec rather than hitting a parse
+  error. Confirmed directly from a full page-source dump: both tabs'
+  markup was present and completely correct server-side, proving this
+  was a client-side HTML-parsing consequence, not a PHP/XML/language-
+  loading bug.
+- A second instance was found and fixed at the same time: the
+  `protect_video` field description contained a literal `<video>` -
+  `<video>` is a normal (non-raw-text) element so it likely didn't cause
+  the same severity of breakage, but the same class of risk, so fixed
+  regardless.
+- **Fix**: both descriptions now name the tag/feature in quotes
+  ('noscript', 'video') instead of literal angle brackets.
+- **v1.12.1 was not wrong** - the backslash-escaped-quote issue it fixed
+  was real and worth fixing, it just was not *this* bug. Both fixes
+  stand independently.
+- Extended `test_fg_crc_language_ini_lint.js` (4 new assertions, one per
+  language file) to scan every language file for any literal
+  HTML-tag-like sequence (`<letter...`) and fail if one is found. Verified
+  to actually catch the exact original incident by temporarily
+  reintroducing the precise broken string and confirming the test fails,
+  then restoring the fix.
+- **Lesson for all future field descriptions**: never write a literal
+  `<tagname>` in a language file value, for any reason, even purely as
+  descriptive prose - Joomla does not escape this text before rendering
+  it as HTML. Refer to tags/elements in quotes instead.
+
 ## 1.12.1 (2026-08-29)
 
 ### Critical fix - Popup/Custom menu admin tabs vanishing entirely

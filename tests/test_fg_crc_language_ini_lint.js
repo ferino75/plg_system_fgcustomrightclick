@@ -34,5 +34,39 @@ console.log('TEST: no language file uses backslash-escaped double quotes or a ba
     });
 }
 
+console.log('TEST: no language value contains a literal HTML-tag-like sequence (<letter...)');
+{
+    // CONFIRMED root cause of a real production incident: a field
+    // description containing the literal, unclosed text "<noscript>"
+    // (meant as plain-English prose, not markup) silently broke the
+    // entire rest of the admin edit page. Joomla renders field
+    // descriptions as raw HTML, not escaped text - and per the HTML5
+    // spec, <noscript> is a "raw text" element when scripting is
+    // enabled, meaning the browser treats everything from that point
+    // until the next literal "</noscript>" string as inert text, not
+    // markup. With no matching close tag anywhere later in the page,
+    // this silently swallowed the rest of the DOM (including the
+    // Popup/Custom menu tabs and, apparently, enough page structure to
+    // also break the Save/Save & Close toolbar buttons) - with zero
+    // console errors, since the browser was correctly following the
+    // spec, not encountering a parse error. A second instance
+    // (a literal "<video>" mention) was found and fixed at the same
+    // time - <video> is a normal (non-raw-text) element so it likely
+    // didn't cause the same severity of breakage, but the risk is the
+    // same class of bug and is never worth taking. The fix in both
+    // cases: describe tag/feature names in quotes ('noscript', 'video'),
+    // never with literal angle brackets, anywhere in a language file.
+    files.forEach((file) => {
+        const content = fs.readFileSync(file, 'utf8');
+        const relative = file.replace(__dirname + '/../', '');
+        const tagLikeMatch = content.match(/<[a-zA-Z][^\s"=]*/);
+
+        assert(
+            !tagLikeMatch,
+            `${relative}: no literal HTML-tag-like sequence anywhere` + (tagLikeMatch ? ` (found: "${tagLikeMatch[0]}")` : '')
+        );
+    });
+}
+
 console.log(failures === 0 ? '\nALL LANGUAGE-INI-LINT TESTS PASSED' : '\n' + failures + ' TEST(S) FAILED');
 process.exit(failures ? 1 : 0);
