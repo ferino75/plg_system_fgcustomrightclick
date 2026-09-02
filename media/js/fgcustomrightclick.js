@@ -1031,12 +1031,19 @@
             const block =
                 // F12
                 (e.key === 'F12' || code === 'F12')
-                // Ctrl+Shift+I / J / C (Win/Linux) and Cmd+Shift+I/J/C
-                || (mod && e.shiftKey && (code === 'KeyI' || code === 'KeyJ' || code === 'KeyC'))
-                // Cmd+Opt+I / J / C (macOS)
-                || (e.metaKey && e.altKey && (code === 'KeyI' || code === 'KeyJ' || code === 'KeyC'))
-                // Ctrl+U / Cmd+U - view source
-                || (mod && !e.shiftKey && !e.altKey && code === 'KeyU');
+                // Ctrl+Shift+I / J / C / K (Win/Linux) and Cmd+Shift+I/J/C/K -
+                // K is Firefox's Web Console shortcut, distinct from J
+                // (Chrome's JS console)
+                || (mod && e.shiftKey && (code === 'KeyI' || code === 'KeyJ' || code === 'KeyC' || code === 'KeyK'))
+                // Cmd+Opt+I / J / C / K (macOS - Firefox uses Cmd+Opt+K for
+                // its Web Console on Mac, matching the I/J/C pattern)
+                || (e.metaKey && e.altKey && (code === 'KeyI' || code === 'KeyJ' || code === 'KeyC' || code === 'KeyK'))
+                // Ctrl+U / Cmd+U - view source (Windows/Linux, and Chrome/
+                // Firefox on macOS)
+                || (mod && !e.shiftKey && !e.altKey && code === 'KeyU')
+                // Cmd+Opt+U - view source (Safari's own shortcut on macOS,
+                // different from the Chrome/Firefox one above)
+                || (e.metaKey && e.altKey && code === 'KeyU');
 
             if (block) {
                 e.preventDefault();

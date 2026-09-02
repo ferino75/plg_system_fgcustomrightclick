@@ -1,5 +1,29 @@
 # Changelog - plg_system_fgcustomrightclick
 
+## 1.11.1 (2026-08-29)
+
+### Devtools-shortcut coverage gaps found comparing against Contona's "No Right Click, No Copy"
+
+- **Added Ctrl+Shift+K / Cmd+Opt+K** to the "Discourage developer-tools
+  shortcuts" option - Firefox's Web Console shortcut, distinct from J
+  (Chrome's JS console), was simply missing from both the Windows/Linux
+  and macOS key lists.
+- **Added Cmd+Opt+U** (Safari's own View Source shortcut on macOS) - the
+  existing Ctrl+U check explicitly required `!altKey`, which correctly
+  matches the Windows/Linux/Chrome/Firefox shortcut but silently excluded
+  Safari's variant, which uses Option as part of the combo.
+- **Confirmed (no change needed): "Prevent printing via File → Print",**
+  a feature this competitor advertises, is already covered by this
+  plugin's existing `@media print` CSS (since v1.6.7) - that rule applies
+  to any print rendering context regardless of what triggered it
+  (Ctrl+P, the browser's own Print menu item, or a page calling
+  `window.print()`), not just the keyboard shortcut.
+- Updated the field description to list the now-complete shortcut set.
+- Added `test_fg_crc_devtools_coverage_gap.js` (10 jsdom assertions):
+  both newly-added combos are blocked, and every previously-working
+  combo (F12, Ctrl+U, Ctrl+Shift+I/J/C, Cmd+Opt+I/J/C, plain Ctrl+C
+  unaffected) still works exactly as before.
+
 ## 1.11.0 (2026-08-29)
 
 ### Three new features, closing gaps found comparing against JoomlaX's "Right Click Disable"
