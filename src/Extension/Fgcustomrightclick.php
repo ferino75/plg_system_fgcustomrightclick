@@ -80,6 +80,24 @@ final class Fgcustomrightclick extends CMSPlugin implements SubscriberInterface
             return;
         }
 
+        // Anti-framing (prevents this site being embedded in an <iframe>/
+        // <frame>/<object>/<embed> on another domain, a distinct concern
+        // from the copy/right-click protections below). This is a pure
+        // HTTP response header, so it needs neither CSS nor JS - handled
+        // here independently of the asset-loading "nothing to do" check
+        // further down. Deliberately X-Frame-Options only, not also a
+        // separate Content-Security-Policy: frame-ancestors header: per
+        // Joomla's own documented setHeader() behaviour, two plugins each
+        // adding a same-named header can result in only the last one
+        // actually being sent rather than both being combined - risking
+        // silently clobbering a site's own, more specific CSP policy set
+        // by a dedicated CSP plugin. X-Frame-Options: SAMEORIGIN carries
+        // no such risk and is still respected by effectively every
+        // browser in real-world use.
+        if ((int) $this->params->get('anti_framing', 0)) {
+            $app->setHeader('X-Frame-Options', 'SAMEORIGIN', true);
+        }
+
         $mode                    = (int) $this->params->get('rightclick_mode', 0);
         $disablePrint            = (int) $this->params->get('disable_print', 0);
         $disableSelect           = (int) $this->params->get('disable_select', 0);

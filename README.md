@@ -4,7 +4,7 @@
 
 [![Joomla](https://img.shields.io/badge/Joomla-6%2C%205%2C%204-1a6877?logo=joomla)](https://www.joomla.org/)
 [![License: GPL v2](https://img.shields.io/badge/License-GPLv2-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.12.3-ff6b4a)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.13.0-ff6b4a)](CHANGELOG.md)
 
 A native Joomla system plugin that disables printing, text selection/copy,
 image dragging, developer-tools keyboard shortcuts, and the browser's
@@ -59,6 +59,8 @@ Click for Joomla 3.X" extension.
 - Optional `<noscript>` warning banner for visitors without JavaScript -
   purely informational, never hides page content (none of this plugin's
   protections apply without JS anyway)
+- Prevent framing on other sites (`X-Frame-Options: SAMEORIGIN`) - a
+  distinct, HTTP-level protection independent of JavaScript
 - Follows the site template's own light/dark theme (`data-bs-theme` /
   `data-color-scheme`) rather than the visitor's OS preference, respects
   `prefers-reduced-motion`, and uses logical CSS properties for RTL

@@ -1,5 +1,43 @@
 # Changelog - plg_system_fgcustomrightclick
 
+## 1.13.0 (2026-08-29)
+
+### New feature: "Prevent framing on other sites" (anti-framing / anti-clickjacking)
+
+- Added `anti_framing`, off by default: when enabled, sends the
+  `X-Frame-Options: SAMEORIGIN` HTTP response header, so another
+  website cannot embed this site's pages inside their own
+  `<frame>`/`<iframe>`/`<object>`/`<embed>` - a distinct, page-level
+  protection from the copy/right-click features, and one that works at
+  the HTTP level regardless of whether JavaScript runs at all. Added
+  after comparing against a competing extension (AntiCopy /
+  jextbox.com) that offers this as one of its features.
+- **Deliberately X-Frame-Options only, not also a separate
+  `Content-Security-Policy: frame-ancestors` header** (verified this is
+  the modern equivalent, and that `frame-ancestors` cannot be delivered
+  via a `<meta>` tag at all - confirmed directly against MDN and the
+  OWASP CSP cheat sheet - it only works as a real HTTP header). Per
+  Joomla's own documented `setHeader()` behaviour, two plugins each
+  adding a same-named header can result in only the last one actually
+  being sent rather than both being combined, which risks silently
+  clobbering a site's own, more specific CSP policy if it already has a
+  dedicated CSP plugin. `X-Frame-Options: SAMEORIGIN` carries no such
+  collision risk and remains respected by effectively every browser in
+  real-world use.
+- The header is sent independently of every other feature's "nothing to
+  do" check - it needs no CSS or JS at all, so it fires even with
+  `rightclick_mode` set to "No" and nothing else enabled, and correctly
+  respects the same user-group/component/URL exclusion guards as
+  everything else in the plugin.
+- Sent with `replace=true`, so repeated calls (or an unusual request
+  lifecycle invoking the hook more than once) cannot result in duplicate
+  header entries.
+- Added `test_fg_crc_anti_framing_php.php` (6 PHP assertions, with a
+  stub `setHeader()` capturing name/value/replace): the header is sent
+  correctly when enabled (even with no other protection active), never
+  sent when disabled, never accompanied by a separate CSP header, and
+  the exclusion guards don't crash when combined with this option.
+
 ## 1.12.3 (2026-08-29)
 
 ### Admin UX - clarified why the Popup/Custom menu tabs can appear empty

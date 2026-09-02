@@ -5,7 +5,7 @@
 	<creationDate>2026-08-27</creationDate>
 	<copyright>(C) 2026 Fero. All rights reserved.</copyright>
 	<license>GNU General Public License version 2 or later</license>
-	<version>1.12.3</version>
+	<version>1.13.0</version>
 	<description>PLG_SYSTEM_FGCUSTOMRIGHTCLICK_XML_DESCRIPTION</description>
 	<namespace path="src">FG\Plugin\System\Fgcustomrightclick</namespace>
 
@@ -76,6 +76,19 @@
 					layout="joomla.form.field.radio.switcher"
 					label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_DISABLE_IMAGEDRAG_LABEL"
 					description="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_DISABLE_IMAGEDRAG_DESC"
+					default="0"
+					filter="integer"
+				>
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>
+
+				<field
+					name="anti_framing"
+					type="radio"
+					layout="joomla.form.field.radio.switcher"
+					label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_ANTI_FRAMING_LABEL"
+					description="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_ANTI_FRAMING_DESC"
 					default="0"
 					filter="integer"
 				>
