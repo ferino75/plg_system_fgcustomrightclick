@@ -273,7 +273,7 @@
 					description="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_POPUP_ENABLED_DESC"
 					default="1"
 					filter="integer"
-					showon="basic.rightclick_mode:1"
+					showon="rightclick_mode:1"
 				>
 					<option value="0">JNO</option>
 					<option value="1">JYES</option>
@@ -284,7 +284,7 @@
 					type="text"
 					label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_POPUP_TITLE_LABEL"
 					default=""
-					showon="basic.rightclick_mode:1[AND]popup_enabled:1"
+					showon="rightclick_mode:1[AND]popup_enabled:1"
 				/>
 
 				<field
@@ -295,7 +295,7 @@
 					label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_POPUP_MESSAGE_LABEL"
 					description="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_POPUP_MESSAGE_DESC"
 					default=""
-					showon="basic.rightclick_mode:1[AND]popup_enabled:1"
+					showon="rightclick_mode:1[AND]popup_enabled:1"
 				/>
 
 				<field
@@ -308,7 +308,7 @@
 					label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_POPUP_TIMEOUT_LABEL"
 					description="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_POPUP_TIMEOUT_DESC"
 					filter="integer"
-					showon="basic.rightclick_mode:1[AND]popup_enabled:1"
+					showon="rightclick_mode:1[AND]popup_enabled:1"
 				/>
 
 			</fieldset>
@@ -323,7 +323,7 @@
 					multiple="true"
 					layout="joomla.form.field.subform.repeatable"
 					buttons="add,remove,move"
-					showon="basic.rightclick_mode:3"
+					showon="rightclick_mode:3"
 				>
 					<form>
 						<field
