@@ -1,5 +1,37 @@
 # Changelog - plg_system_fgcustomrightclick
 
+## 1.12.1 (2026-08-29)
+
+### Critical fix - Popup/Custom menu admin tabs vanishing entirely
+
+- **Reported from real-world testing**: the "Popup" and "Custom menu"
+  tabs disappeared completely from the plugin's configuration screen -
+  only Plugin, Exclusions, Custom Shortcuts, and Accessibility remained
+  visible.
+- **Root cause**: `PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_PROTECT_INTERACTIVE_DESC`
+  used backslash-escaped double quotes (`role=\"button\"`) - the officially
+  documented Joomla language-file escaping method, and one that parses
+  perfectly fine with plain PHP `parse_ini_file()` (verified directly).
+  However, Joomla changed how `\` and `$` are handled in language files
+  around 4.4.1/5.0.1 while moving toward a "raw" language parser for
+  6.0, and evidently Joomla's own runtime parser handled this line badly
+  enough to corrupt parsing of the rest of the file - silently dropping
+  the fieldset labels needed for two entire tabs, even though the exact
+  same file parsed with 83/83 keys matching under plain PHP.
+- **Fixed by eliminating the escaping entirely**: replaced `\"button\"`
+  with `'button'` (single quotes need no escaping in INI values at all).
+  Both language files were also swept for any other literal `\` or `$`
+  character - none remained.
+- Added `test_fg_crc_language_ini_lint.js` (12 assertions): every
+  language file (both locales, both `.ini` and `.sys.ini`) is checked
+  for backslash-escaped quotes and bare `\`/`$` characters. Verified to
+  actually catch the regression by temporarily reintroducing the exact
+  broken line and confirming the test fails, then restoring the fix.
+- **Lesson for future edits**: this plugin's language strings must never
+  need backslash-escaping. If a value needs a quoted term, use single
+  quotes ('like this') instead of the officially-documented-but-apparently-
+  fragile-in-practice `\"escaped\"` double-quote form.
+
 ## 1.12.0 (2026-08-29)
 
 ### New feature: optional JavaScript-disabled warning (new "Accessibility" tab)
