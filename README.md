@@ -4,7 +4,7 @@
 
 [![Joomla](https://img.shields.io/badge/Joomla-6%2C%205%2C%204-1a6877?logo=joomla)](https://www.joomla.org/)
 [![License: GPL v2](https://img.shields.io/badge/License-GPLv2-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.10.1-ff6b4a)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.11.0-ff6b4a)](CHANGELOG.md)
 
 A native Joomla system plugin that disables printing, text selection/copy,
 image dragging, developer-tools keyboard shortcuts, and the browser's
@@ -50,6 +50,12 @@ Click for Joomla 3.X" extension.
 - Touch-device long-press (500ms) opens the popup/custom menu the same
   way a desktop right-click does - needed because iOS Safari largely
   does not fire a `contextmenu` event on long-press at all
+- Exclude specific components or URL paths from the plugin entirely
+- Admin-defined custom keyboard shortcuts, with exact modifier matching
+  and Ctrl/Cmd cross-platform support
+- Additional CSS "exception selectors" so a custom widget or web
+  component the built-in exemption list doesn't recognise can be added
+  without waiting for a plugin update
 - Follows the site template's own light/dark theme (`data-bs-theme` /
   `data-color-scheme`) rather than the visitor's OS preference, respects
   `prefers-reduced-motion`, and uses logical CSS properties for RTL

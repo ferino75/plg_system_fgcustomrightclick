@@ -5,7 +5,7 @@
 	<creationDate>2026-08-27</creationDate>
 	<copyright>(C) 2026 Fero. All rights reserved.</copyright>
 	<license>GNU General Public License version 2 or later</license>
-	<version>1.10.1</version>
+	<version>1.11.0</version>
 	<description>PLG_SYSTEM_FGCUSTOMRIGHTCLICK_XML_DESCRIPTION</description>
 	<namespace path="src">FG\Plugin\System\Fgcustomrightclick</namespace>
 
@@ -123,6 +123,17 @@
 				</field>
 
 				<field
+					name="extra_exempt_selectors"
+					type="textarea"
+					rows="3"
+					filter="string"
+					label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_EXTRA_EXEMPT_SELECTORS_LABEL"
+					description="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_EXTRA_EXEMPT_SELECTORS_DESC"
+					default=""
+					showon="protect_interactive:1"
+				/>
+
+				<field
 					name="rightclick_mode"
 					type="list"
 					label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_MODE_LABEL"
@@ -162,6 +173,64 @@
 				>
 					<option value="0">JNO</option>
 					<option value="1">JYES</option>
+				</field>
+
+			</fieldset>
+
+			<fieldset name="exclusions" label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELDSET_EXCLUSIONS">
+
+				<field
+					name="exclude_components"
+					type="textarea"
+					rows="3"
+					filter="string"
+					label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_EXCLUDE_COMPONENTS_LABEL"
+					description="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_EXCLUDE_COMPONENTS_DESC"
+					default=""
+				/>
+
+				<field
+					name="exclude_urls"
+					type="textarea"
+					rows="3"
+					filter="string"
+					label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_EXCLUDE_URLS_LABEL"
+					description="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_EXCLUDE_URLS_DESC"
+					default=""
+				/>
+
+			</fieldset>
+
+			<fieldset name="shortcuts" label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELDSET_SHORTCUTS">
+
+				<field
+					name="custom_shortcuts"
+					type="subform"
+					label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_CUSTOM_SHORTCUTS_LABEL"
+					description="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_CUSTOM_SHORTCUTS_DESC"
+					multiple="true"
+					layout="joomla.form.field.subform.repeatable"
+					buttons="add,remove,move"
+				>
+					<form>
+						<field
+							name="modifiers"
+							type="list"
+							multiple="true"
+							label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_SHORTCUT_MODIFIERS_LABEL"
+							default="ctrl"
+						>
+							<option value="ctrl">PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_SHORTCUT_MODIFIER_CTRL</option>
+							<option value="shift">PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_SHORTCUT_MODIFIER_SHIFT</option>
+							<option value="alt">PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_SHORTCUT_MODIFIER_ALT</option>
+						</field>
+						<field
+							name="key"
+							type="text"
+							label="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_SHORTCUT_KEY_LABEL"
+							description="PLG_SYSTEM_FGCUSTOMRIGHTCLICK_FIELD_SHORTCUT_KEY_DESC"
+						/>
+					</form>
 				</field>
 
 			</fieldset>

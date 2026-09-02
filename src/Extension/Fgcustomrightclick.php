@@ -11,6 +11,7 @@ namespace FG\Plugin\System\Fgcustomrightclick\Extension;
 use Joomla\CMS\Document\HtmlDocument;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Plugin\CMSPlugin;
+use Joomla\CMS\Uri\Uri;
 use Joomla\Event\Event;
 use Joomla\Event\SubscriberInterface;
 use Joomla\Filter\InputFilter;
@@ -73,6 +74,11 @@ final class Fgcustomrightclick extends CMSPlugin implements SubscriberInterface
             return;
         }
 
+        // Skip entirely on excluded components or URL paths
+        if ($this->isComponentExcluded() || $this->isUrlExcluded()) {
+            return;
+        }
+
         $mode                    = (int) $this->params->get('rightclick_mode', 0);
         $disablePrint            = (int) $this->params->get('disable_print', 0);
         $disableSelect           = (int) $this->params->get('disable_select', 0);
@@ -82,9 +88,18 @@ final class Fgcustomrightclick extends CMSPlugin implements SubscriberInterface
         $protectInteractive      = (int) $this->params->get('protect_interactive', 1);
         $protectVideo            = (int) $this->params->get('protect_video', 0);
         $protectBackgroundImages = (int) $this->params->get('protect_background_images', 0);
+        $customShortcuts         = $this->getCustomShortcuts();
 
         // Nothing to do
-        if ($mode === 0 && !$disablePrint && !$disableSelect && !$disableImgDrag && !$disableSave && !$blockDevtools) {
+        if (
+            $mode === 0
+            && !$disablePrint
+            && !$disableSelect
+            && !$disableImgDrag
+            && !$disableSave
+            && !$blockDevtools
+            && !$customShortcuts
+        ) {
             return;
         }
 
@@ -99,6 +114,18 @@ final class Fgcustomrightclick extends CMSPlugin implements SubscriberInterface
             'protectVideo'             => (bool) $protectVideo,
             'protectBackgroundImages'  => (bool) $protectBackgroundImages,
         ];
+
+        if ($customShortcuts) {
+            $options['customShortcuts'] = $customShortcuts;
+        }
+
+        if ($protectInteractive) {
+            $extraExemptSelectors = $this->getRawListParam('extra_exempt_selectors');
+
+            if ($extraExemptSelectors) {
+                $options['extraExemptSelectors'] = $extraExemptSelectors;
+            }
+        }
 
         // The popup, the custom menu, and the print-block message all
         // render translated strings that were previously hard-coded in
@@ -169,6 +196,130 @@ final class Fgcustomrightclick extends CMSPlugin implements SubscriberInterface
         }
 
         return (bool) array_intersect($selected, array_map('intval', $user->getAuthorisedGroups()));
+    }
+
+    /**
+     * True if the currently-dispatched component (com_xxx) is in the
+     * admin-configured exclusion list. Comparison is case-insensitive.
+     */
+    private function isComponentExcluded(): bool
+    {
+        $excluded = $this->getListParam('exclude_components');
+
+        if (!$excluded) {
+            return false;
+        }
+
+        $option = strtolower((string) $this->getApplication()->getInput()->getCmd('option', ''));
+
+        return $option !== '' && \in_array($option, $excluded, true);
+    }
+
+    /**
+     * True if the current request URL contains any of the admin-configured
+     * exclusion patterns (simple case-insensitive substring match - not a
+     * regex, so it can't itself become a source of ReDoS or malformed-
+     * pattern errors).
+     */
+    private function isUrlExcluded(): bool
+    {
+        $excluded = $this->getListParam('exclude_urls');
+
+        if (!$excluded) {
+            return false;
+        }
+
+        $current = strtolower((string) Uri::getInstance()->toString());
+
+        foreach ($excluded as $pattern) {
+            if ($pattern !== '' && str_contains($current, $pattern)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Splits a newline-separated textarea param into a trimmed,
+     * lowercased, empty-line-filtered array. Shared by the component and
+     * URL exclusion fields, and kept in one place so both behave
+     * identically (same trimming/case rules).
+     *
+     * @return array<int, string>
+     */
+    private function getListParam(string $name): array
+    {
+        $raw = (string) $this->params->get($name, '');
+
+        if (trim($raw) === '') {
+            return [];
+        }
+
+        $lines = preg_split('/[\r\n]+/', $raw) ?: [];
+        $lines = array_map(static fn ($line) => strtolower(trim($line)), $lines);
+
+        return array_values(array_filter($lines, static fn ($line) => $line !== ''));
+    }
+
+    /**
+     * Same line-splitting/trimming as getListParam(), but WITHOUT
+     * lowercasing - used for CSS selectors, where case matters (e.g.
+     * ".myClass" and ".myclass" are different selectors, since HTML
+     * class/id attribute values are case-sensitive even though CSS tag
+     * names aren't).
+     *
+     * @return array<int, string>
+     */
+    private function getRawListParam(string $name): array
+    {
+        $raw = (string) $this->params->get($name, '');
+
+        if (trim($raw) === '') {
+            return [];
+        }
+
+        $lines = preg_split('/[\r\n]+/', $raw) ?: [];
+        $lines = array_map('trim', $lines);
+
+        return array_values(array_filter($lines, static fn ($line) => $line !== ''));
+    }
+
+    /**
+     * Normalises the custom_shortcuts subform into a clean array for JS:
+     * [['key' => 's', 'ctrl' => true, 'shift' => false, 'alt' => false], ...].
+     * Rows with an empty or implausibly long key are dropped. No further
+     * restriction is needed on the key value itself - it only ever gets
+     * compared against KeyboardEvent.key in a preventDefault() check, it
+     * is never executed as code or inserted into markup.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function getCustomShortcuts(): array
+    {
+        $raw       = json_decode(json_encode($this->params->get('custom_shortcuts', [])), true) ?: [];
+        $shortcuts = [];
+
+        foreach ($raw as $row) {
+            $row = (array) $row;
+            $key = trim((string) ($row['key'] ?? ''));
+
+            if ($key === '' || strlen($key) > 20) {
+                continue;
+            }
+
+            $modifiers = (array) ($row['modifiers'] ?? []);
+            $modifiers = array_map('strval', $modifiers);
+
+            $shortcuts[] = [
+                'key'   => $key,
+                'ctrl'  => \in_array('ctrl', $modifiers, true),
+                'shift' => \in_array('shift', $modifiers, true),
+                'alt'   => \in_array('alt', $modifiers, true),
+            ];
+        }
+
+        return $shortcuts;
     }
 
     /**

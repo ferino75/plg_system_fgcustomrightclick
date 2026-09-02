@@ -1,5 +1,59 @@
 # Changelog - plg_system_fgcustomrightclick
 
+## 1.11.0 (2026-08-29)
+
+### Three new features, closing gaps found comparing against JoomlaX's "Right Click Disable"
+
+All three were identified during a feature comparison against a more
+mature competing extension and implemented after explicit confirmation.
+
+**1. Exclude components/URL paths** (new "Exclusions" tab)
+- `exclude_components`: one component name per line (e.g. `com_contact`).
+  The plugin does nothing at all - not even print/devtools blocking - on
+  pages rendered by a listed component.
+- `exclude_urls`: one pattern per line, matched as a case-insensitive
+  substring against the current page's full URL.
+- Both are checked as new guard clauses immediately after the existing
+  client/document-type/user-group checks, before any parameter reading
+  or asset registration happens.
+
+**2. Admin-defined custom keyboard shortcuts** (new "Custom Shortcuts" tab)
+- A repeatable subform: pick modifiers (Ctrl/Cmd, Shift, Alt) and a key
+  (a single character or a named key like `Escape`/`F1`/`ArrowLeft`).
+  Modifier matching is exact - a shortcut configured as plain Ctrl+K does
+  not also match Ctrl+Shift+K. Ctrl and Cmd (metaKey) are treated as the
+  same modifier for cross-platform Mac/Windows support, consistent with
+  every other keyboard handler in this plugin. No
+  `stopImmediatePropagation()`, for the same reason as the existing
+  devtools/print/save handlers.
+
+**3. Additional CSS "exception selectors"** (extends "Skip on interactive
+elements")
+- One CSS selector per line, added to the built-in interactive-elements
+  exemption list. This is the general escape hatch for the Shadow DOM
+  limitation already documented on that option: a custom element/web
+  component this plugin doesn't recognise by default can now be exempted
+  by an admin who knows their own site's markup, without waiting for a
+  plugin update.
+- Selectors are validated once at script startup (tested against an
+  inert, detached `DocumentFragment` - cheap, touches no real DOM) rather
+  than on every event; an invalid selector is dropped with a console
+  warning naming it, instead of ever risking a thrown `SyntaxError`
+  inside a live event handler. A single invalid entry in the list does
+  not affect the other, valid entries.
+- Deliberately kept case-sensitive (unlike the component/URL exclusion
+  lists, which are lower-cased): CSS class/ID selectors are
+  case-sensitive, since HTML `class`/`id` attribute values themselves
+  are case-sensitive even though CSS tag-name selectors aren't.
+
+Added `test_fg_crc_exclusions_php.php` (11 PHP assertions),
+`test_fg_crc_custom_shortcuts.js` (15 assertions) +
+`test_fg_crc_custom_shortcuts_php.php` (12 PHP assertions), and
+`test_fg_crc_extra_exempt_selectors.js` (9 assertions, including the
+invalid-selector-is-dropped-safely case) - 47 new assertions across five
+files, on top of the existing 25-suite regression sweep, all passing with
+no regressions.
+
 ## 1.10.1 (2026-08-29)
 
 ### Honesty fix - "Disable saving the page" relabeled

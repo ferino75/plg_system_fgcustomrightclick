@@ -366,11 +366,49 @@
         + 'summary, details, label, [role="button" i], '
         + '[contenteditable="true"], [contenteditable=""]';
 
+    /**
+     * Admin-defined additional CSS selectors (Exclusions/Custom Shortcuts
+     * settings) to also treat as interactive-exempt, for sites with a
+     * custom widget or web component this plugin doesn't recognise by
+     * default - the one general escape hatch for the Shadow DOM
+     * limitation documented above (custom elements can only be exempted
+     * by matching a selector against the host element itself; an admin
+     * who knows their own site's markup can add exactly that selector
+     * here instead of waiting for a plugin update).
+     *
+     * Validated once here, not on every event: an invalid selector string
+     * would make target.closest()/querySelector() throw a SyntaxError, so
+     * each configured selector is tested up front against an inert,
+     * detached fragment (cheap, no real DOM touched) and silently dropped
+     * with a console warning if it doesn't parse, rather than ever
+     * risking a thrown error inside a live event handler.
+     */
+    const EXTRA_EXEMPT_SELECTOR = (() => {
+        const raw = Array.isArray(cfg.extraExemptSelectors) ? cfg.extraExemptSelectors : [];
+        const valid = [];
+        raw.forEach((selector) => {
+            const trimmed = String(selector || '').trim();
+            if (!trimmed) {
+                return;
+            }
+            try {
+                document.createDocumentFragment().querySelector(trimmed);
+                valid.push(trimmed);
+            } catch (e) {
+                console.warn?.('[fgcustomrightclick] ignoring invalid custom exception selector:', trimmed);
+            }
+        });
+        return valid.join(', ');
+    })();
+
     const isInteractiveExempt = (target) => {
         if (!cfg.protectInteractive || !target?.closest) {
             return false;
         }
         if (target.closest(INTERACTIVE_EXEMPT_SELECTOR)) {
+            return true;
+        }
+        if (EXTRA_EXEMPT_SELECTOR && target.closest(EXTRA_EXEMPT_SELECTOR)) {
             return true;
         }
         // <video> is exempt by the same reasoning as the rest of this
@@ -1042,6 +1080,34 @@
         document.addEventListener('keydown', (e) => {
             if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
                 e.preventDefault();
+            }
+        }, true);
+    }
+
+    // Admin-defined custom keyboard shortcuts. Modifier matching is exact:
+    // a shortcut configured as plain Ctrl+S does NOT also match Ctrl+Shift+S,
+    // since the admin explicitly chose which modifiers are part of the
+    // combo. Ctrl and Cmd (metaKey) are treated as the same "ctrl" modifier
+    // for cross-platform Windows/Mac parity, consistent with every other
+    // shortcut handler in this file. No stopImmediatePropagation(), for the
+    // same reason as the handlers above.
+    if (cfg.customShortcuts && cfg.customShortcuts.length) {
+        document.addEventListener('keydown', (e) => {
+            const pressedKey = (e.key || '').toLowerCase();
+            const hasCtrl = e.ctrlKey || e.metaKey;
+
+            for (const shortcut of cfg.customShortcuts) {
+                const wantKey = String(shortcut.key || '').toLowerCase();
+                if (
+                    wantKey
+                    && pressedKey === wantKey
+                    && hasCtrl === !!shortcut.ctrl
+                    && e.shiftKey === !!shortcut.shift
+                    && e.altKey === !!shortcut.alt
+                ) {
+                    e.preventDefault();
+                    break;
+                }
             }
         }, true);
     }
